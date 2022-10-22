@@ -93,7 +93,7 @@ set(BOOST_LIBS_OPTIONAL
     timer
     type_erasure
     wave
-    CACHE STRING "Boost libs to be compiled" FORCE
+    CACHE STRING "Boost libs to be compiled"
 )
 
 foreach(lib ${BOOST_LIBS_REQUIRED})
