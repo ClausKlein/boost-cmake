@@ -91,7 +91,7 @@ set(BOOST_LIBS_OPTIONAL
     graph
     iostreams
     json
-    # FIXME locale
+    locale
     log
     math
     mpi
@@ -171,8 +171,12 @@ if(PROJECT_IS_TOP_LEVEL)
     list(REMOVE_ITEM BOOST_LIBS mpi)
   endif()
 
+  if(ICONV_FOUND)
+    install(TARGETS Boost_locale_deps EXPORT boostTargets)
+  else()
+    list(REMOVE_ITEM BOOST_LIBS locale)
+  endif()
   install(TARGETS ${BOOST_LIBS} EXPORT boostTargets)
-  # FIXME install(TARGETS Boost_locale_deps EXPORT boostTargets)
 endif()
 
 packageProject(
