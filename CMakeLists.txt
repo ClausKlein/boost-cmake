@@ -139,9 +139,9 @@ if(NOT PROJECT_IS_TOP_LEVEL)
   target_link_libraries(boost INTERFACE Threads::Threads)
 endif()
 
-if(UNIX)
-  target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
+target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
 
+if(UNIX)
   if(USE_APPLE)
     # TODO(CK): too many deprectated warnings!
     # intrusive/pointer_rebind.hpp:81:35: warning: 'rebind<std::pair<const int, int>>' is deprecated
