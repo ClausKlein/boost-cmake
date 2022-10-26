@@ -140,12 +140,16 @@ if(NOT PROJECT_IS_TOP_LEVEL)
 endif()
 
 if(UNIX)
-  target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS BOOST_NO_AUTO_PTR)
-endif()
+  target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
 
-if(USE_APPLE)
-  # TODO(CK): too many deprectated warnings!
-  target_compile_options(boost INTERFACE -Wno-deprecated-declarations)
+  if(USE_APPLE)
+    # TODO(CK): too many deprectated warnings!
+    # intrusive/pointer_rebind.hpp:81:35: warning: 'rebind<std::pair<const int, int>>' is deprecated
+    # fiber/future/async.hpp:57 'result_of<void (*())()>' is deprecated
+    target_compile_options(boost INTERFACE -Wno-deprecated-declarations)
+  else()
+    target_compile_definitions(boost INTERFACE BOOST_NO_AUTO_PTR)
+  endif()
 endif()
 
 if(USE_ANDROID)
