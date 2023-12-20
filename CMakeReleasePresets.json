@@ -1,0 +1,89 @@
+{
+    "version": 7,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 27,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "Release",
+            "displayName": "Release Config",
+            "description": "Release build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/Release",
+            "installDir": "${sourceDir}/stagedir",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": {
+                    "type": "path",
+                    "value": "${sourceDir}/stagedir"
+                },
+                "BOOST_DISABLE_TESTS": false,
+                "BOOST_STANDALONE": true,
+                "BUILD_SHARED_LIBS": false,
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_EXTENSIONS": false,
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD_REQUIRED": true,
+                "CMAKE_DEBUG_POSTFIX": "-d",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_INSTALL_MESSAGE": "LAZY",
+                "CMAKE_SKIP_INSTALL_RULES": false,
+                "CMAKE_UNITY_BUILD": false
+            },
+            "environment": {
+                "CPM_USE_LOCAL_PACKAGES": "NO",
+                "PATH": "$env{HOME}/.local/bin${pathListSep}$penv{PATH}"
+            },
+            "warnings": {
+                "deprecated": true,
+                "uninitialized": false
+            },
+            "trace": {
+                "mode": "off"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Release",
+            "configurePreset": "Release"
+        },
+        {
+            "name": "install",
+            "configurePreset": "Release",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "format",
+            "configurePreset": "Release",
+            "targets": [
+                "fix-cmake-format"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "Release",
+            "configurePreset": "Release",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true
+            }
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "Release",
+            "configurePreset": "Release",
+            "generators": [
+                "TGZ"
+            ]
+        }
+    ]
+}

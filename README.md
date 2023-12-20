@@ -20,10 +20,10 @@ include(GNUInstallDirs)
 include(cmake/CPM.cmake)
 
 # PackageProject.cmake will be used to make our target installable
-CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.9.0")
+CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.11.0")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
-CPMAddPackage("gh:ClausKlein/boost-cmake@1.79.3")
+CPMAddPackage("gh:ClausKlein/boost-cmake@1.81.0")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -58,7 +58,7 @@ if(CMAKE_SKIP_INSTALL_RULES)
   return()
 endif()
 
-install(TARGETS filesystem serialization EXPORT boostTargets)
+install(TARGETS serialization EXPORT BoostTargets)
 
 packageProject(
   NAME ${PROJECT_NAME}
@@ -70,7 +70,7 @@ packageProject(
   INCLUDE_HEADER_PATTERN "*.h"
   DISABLE_VERSION_SUFFIX YES
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "Boost 1.79"
+  DEPENDENCIES "Boost 1.81"
 )
 
 include(CPack)

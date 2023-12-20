@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.21...3.26)
+cmake_minimum_required(VERSION 3.21...3.28)
 
-project(Boost-CMake LANGUAGES C CXX VERSION 1.80.0)
+project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0)
 
 if(NOT PROJECT_IS_TOP_LEVEL)
   option(BOOST_DISABLE_TESTS "Do not build test targets, even if building standalone" ON)
@@ -11,15 +11,15 @@ endif()
 
 include(cmake/CPM.cmake)
 
-if(EXISTS "$ENV{CPM_SOURCE_CACHE}/boost_1_80_0")
-  set(FETCHCONTENT_SOURCE_DIR_BOOST "$ENV{CPM_SOURCE_CACHE}/boost_1_80_0" CACHE PATH "Boost source DIR")
+if(EXISTS "$ENV{CPM_SOURCE_CACHE}/boost_1_81_0")
+  set(FETCHCONTENT_SOURCE_DIR_BOOST "$ENV{CPM_SOURCE_CACHE}/boost_1_81_0" CACHE PATH "Boost source DIR")
   set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "Manual override")
 endif()
 
-set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.bz2"
+set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.bz2"
     CACHE STRING "Boost download URL"
 )
-set(BOOST_URL_SHA256 "1e19565d82e43bc59209a168f5ac899d3ba471d55c7610c677d4ccf2c9c500c0"
+set(BOOST_URL_SHA256 "71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa"
     CACHE STRING "Boost download URL SHA256 checksum"
 )
 
@@ -38,18 +38,25 @@ if(NOT Boost_POPULATED)
     if(Patch_FOUND)
       message("Patch found: ${Patch_EXECUTABLE}")
       message("Patching Boost")
-      execute_process(
-        COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/filesystem-01.patch
-        WORKING_DIRECTORY ${BOOST_SOURCE}/libs/filesystem COMMAND_ECHO STDOUT
-      )
-      execute_process(
-        COMMAND ${Patch_EXECUTABLE} -N -p2 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-01.patch
-        WORKING_DIRECTORY ${BOOST_SOURCE} COMMAND_ECHO STDOUT
-      )
-      execute_process(
-        COMMAND ${Patch_EXECUTABLE} -N -R -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-02.patch
-        WORKING_DIRECTORY ${BOOST_SOURCE}/libs/date_time COMMAND_ECHO STDOUT
-      )
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/filesystem-01.patch)
+        execute_process(
+          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/filesystem-01.patch
+          WORKING_DIRECTORY ${BOOST_SOURCE}/libs/filesystem COMMAND_ECHO STDOUT
+        )
+      endif()
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-01.patch)
+        execute_process(
+          COMMAND ${Patch_EXECUTABLE} -N -p2 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-01.patch
+          WORKING_DIRECTORY ${BOOST_SOURCE} COMMAND_ECHO STDOUT
+        )
+      endif()
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-02.patch)
+        execute_process(
+          COMMAND ${Patch_EXECUTABLE} -N -R -p1 -i
+                  ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-02.patch
+          WORKING_DIRECTORY ${BOOST_SOURCE}/libs/date_time COMMAND_ECHO STDOUT
+        )
+      endif()
       message("Patching Boost - done")
     endif()
   endif()
@@ -86,6 +93,11 @@ endif()
 
 set(BOOST_LIBS_REQUIRED # Header only libs
     header
+    serialization
+    system
+    thread
+    chrono
+    # TODO(CK): atomic filesystem
 )
 set(BOOST_LIBS_OPTIONAL
     # Compiled libs
@@ -101,13 +113,13 @@ set(BOOST_LIBS_OPTIONAL
     graph
     iostreams
     json
-    locale
+    # FIXME: locale  # TODO(CK) to complex, refactory needed!
     log
     math
     mpi
     graph_parallel # TODO(CK) does this realy depends on mpi?
     program_options
-    #python # complex module
+    # XXX python # NOTE: not supported, to complex module!
     random
     regex
     serialization
@@ -124,32 +136,35 @@ foreach(lib ${BOOST_LIBS_REQUIRED})
   include("libs/${lib}.cmake")
 endforeach()
 
-foreach(lib ${BOOST_LIBS_OPTIONAL})
-  # In case only a subset of modules is available (eg. after using bcp)
-  if(EXISTS "${BOOST_SOURCE}/libs/${lib}")
-    include("libs/${lib}.cmake")
-  endif()
-endforeach()
+# FIXME: disabled for now! CK
+# foreach(lib ${BOOST_LIBS_OPTIONAL})
+#   # In case only a subset of modules is available (eg. after using bcp)
+#   if(EXISTS "${BOOST_SOURCE}/libs/${lib}")
+#     include("libs/${lib}.cmake")
+#   endif()
+# endforeach()
 
 # TODO: Move those to option() calls in the right file
-if(NOT PROJECT_IS_TOP_LEVEL)
-  find_package(Threads)
+find_package(Threads)
 
-  # Compilation options required by all platforms
-  target_compile_definitions(
-    boost
-    INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT>
-              BOOST_ASIO_NO_DEPRECATED
-              BOOST_SYSTEM_NO_DEPRECATED
-              BOOST_THREAD_VERSION=5
-              BOOST_THREAD_USES_CHRONO
-              BOOST_THREAD_PROVIDES_EXECUTORS
-  )
-  add_library(Boost::asio ALIAS boost)
-  target_link_libraries(boost INTERFACE Threads::Threads)
-endif()
-
+# Compilation options required by all platforms
+target_compile_definitions(
+  boost
+  INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT>
+            BOOST_ASIO_NO_DEPRECATED
+            BOOST_SYSTEM_NO_DEPRECATED
+            BOOST_THREAD_VERSION=5
+            BOOST_THREAD_USES_CHRONO
+            BOOST_THREAD_PROVIDES_EXECUTORS
+)
+target_link_libraries(boost INTERFACE Threads::Threads)
 target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
+
+if(PROJECT_IS_TOP_LEVEL)
+  message(STATUS "PROJECT_IS_TOP_LEVEL")
+else()
+  add_library(Boost::asio ALIAS boost)
+endif()
 
 if(UNIX)
   if(USE_APPLE)
@@ -174,10 +189,10 @@ endif()
 # ---- Install rules ----
 
 # PackageProject.cmake will be used to make our target installable
-CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.9.0")
 
-if(PROJECT_IS_TOP_LEVEL)
-  message(STATUS "PROJECT_IS_TOP_LEVEL")
+if(BOOST_USE_ORIGINAL_PackageProject)
+  CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.11.0")
+
   set(BOOST_LIBS ${BOOST_LIBS_OPTIONAL})
   list(REMOVE_ITEM BOOST_LIBS test)
   list(APPEND BOOST_LIBS unit_test_framework)
@@ -189,18 +204,24 @@ if(PROJECT_IS_TOP_LEVEL)
   endif()
 
   if(ICONV_FOUND)
-    install(TARGETS Boost_locale_deps EXPORT boostTargets)
+    install(TARGETS Boost_locale_deps EXPORT BoostTargets)
   else()
     list(REMOVE_ITEM BOOST_LIBS locale)
   endif()
-  install(TARGETS ${BOOST_LIBS} EXPORT boostTargets)
+  install(TARGETS ${BOOST_LIBS} EXPORT BoostTargets)
+else()
+  include(cmake/PackageProject.cmake)
+
+  set(BOOST_LIBS ${BOOST_LIBS_REQUIRED})
+  list(REMOVE_ITEM BOOST_LIBS header)
+  list(APPEND BOOST_LIBS boost)
 endif()
 
 packageProject(
-  NAME boost
+  NAME Boost TARGETS ${BOOST_LIBS}
   VERSION ${BOOST_VERSION}
   NAMESPACE Boost
-  BINARY_DIR ${PROJECT_BINARY_DIR}
+  BINARY_DIR ${PROJECT_BINARY_DIR} ARCH_INDEPENDENT NO
   INCLUDE_DIR ${BOOST_SOURCE}/boost
   INCLUDE_DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boost
   DISABLE_VERSION_SUFFIX YES
@@ -208,4 +229,4 @@ packageProject(
   DEPENDENCIES "Threads" # TODO(CK): variable list needed for: BZIP2; Iconf; ICU; MPI; ZLIB
 )
 
-include(CPack)
+include(cmake/AddUninstallTarget.cmake)

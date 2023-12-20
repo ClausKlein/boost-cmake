@@ -130,8 +130,9 @@ endif()
 _add_boost_test(
   NAME locale_test
   LINK Boost::locale Boost_locale_deps
+  INCLUDE ${BOOST_SOURCE}/libs/locale/test
   TESTS # Configuration information
-        RUN ${BOOST_SOURCE}/libs/locale/test/test_config.cpp
+        RUN ${BOOST_SOURCE}/libs/locale/test/show_config.cpp
         # Shared
         RUN ${BOOST_SOURCE}/libs/locale/test/test_utf.cpp
         RUN ${BOOST_SOURCE}/libs/locale/test/test_date_time.cpp
