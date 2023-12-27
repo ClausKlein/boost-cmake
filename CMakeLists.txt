@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21...3.28)
 
-project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.6)
+project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.1)
 
 if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "PROJECT_IS_TOP_LEVEL")
