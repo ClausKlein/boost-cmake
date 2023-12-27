@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21...3.28)
 
-project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.1)
+project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.2)
 
 if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "PROJECT_IS_TOP_LEVEL")
@@ -204,7 +204,7 @@ if(UNIX)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(boost INTERFACE -Wno-deprecated-copy)
   endif()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 10.0)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 10.0)
     target_compile_options(
       boost INTERFACE -Wno-deprecated-copy-dtor -Wno-newline-eof -Wno-deprecated-copy-with-user-provided-copy
     )
