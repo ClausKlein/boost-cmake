@@ -23,6 +23,10 @@ function(packageProject)
     set(PROJECT_VERSION_SUFFIX -${PROJECT_VERSION})
   endif()
 
+  if(NOT PROJECT_TARGETS)
+    set(PROJECT_TARGETS ${PROJECT_NAME})
+  endif()
+
   if(NOT DEFINED PROJECT_COMPATIBILITY)
     set(PROJECT_COMPATIBILITY AnyNewerVersion)
   endif()

@@ -1,23 +1,24 @@
 cmake_minimum_required(VERSION 3.21...3.28)
 
-project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.1)
+project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.6)
 
 if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "PROJECT_IS_TOP_LEVEL")
 else()
   option(BOOST_DISABLE_TESTS "Do not build test targets, even if building standalone" ON)
 endif()
-option(BOOST_USE_ALL_OPTIONAL_LIBS "Prepare all optional libs" OFF)
 
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-if(EXISTS "$ENV{CPM_SOURCE_CACHE}/boost_1_81_0")
-  set(FETCHCONTENT_SOURCE_DIR_BOOST "$ENV{CPM_SOURCE_CACHE}/boost_1_81_0" CACHE PATH "Boost source DIR")
+set(BOOST_SUBDIR boost_1_81_0)
+if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
+  set(FETCHCONTENT_SOURCE_DIR_BOOST "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}" CACHE PATH "Boost source DIR")
   set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "Manual override")
 endif()
 
-set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.bz2"
+set(BOOST_VERSION 1.81.0)
+set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/${BOOST_SUBDIR}.tar.bz2"
     CACHE STRING "Boost download URL"
 )
 set(BOOST_URL_SHA256 "71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa"
@@ -35,47 +36,44 @@ if(NOT Boost_POPULATED)
   message(STATUS "Fetching Boost - done")
   set(BOOST_SOURCE ${boost_SOURCE_DIR})
 
-  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION})
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
     find_package(Patch)
     if(Patch_FOUND)
       message("Patch found: ${Patch_EXECUTABLE}")
       message("Patching Boost")
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/archive-01.patch)
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/archive-01.patch)
         execute_process(
-          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/archive-01.patch
+          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/archive-01.patch
           WORKING_DIRECTORY ${BOOST_SOURCE}/boost/archive COMMAND_ECHO STDOUT
         )
       endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/thread_future-01.patch)
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/thread_future-01.patch)
         execute_process(
-          COMMAND ${Patch_EXECUTABLE} -N -p1 -i
-                  ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/thread_future-01.patch
+          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/thread_future-01.patch
           WORKING_DIRECTORY ${BOOST_SOURCE}/boost COMMAND_ECHO STDOUT
         )
       endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/serialization-01.patch)
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/serialization-01.patch)
         execute_process(
-          COMMAND ${Patch_EXECUTABLE} -N -p1 -i
-                  ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/serialization-01.patch
+          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/serialization-01.patch
           WORKING_DIRECTORY ${BOOST_SOURCE}/libs/serialization COMMAND_ECHO STDOUT
         )
       endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/filesystem-01.patch)
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/filesystem-01.patch)
         execute_process(
-          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/filesystem-01.patch
+          COMMAND ${Patch_EXECUTABLE} -N -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/filesystem-01.patch
           WORKING_DIRECTORY ${BOOST_SOURCE}/libs/filesystem COMMAND_ECHO STDOUT
         )
       endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-01.patch)
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-01.patch)
         execute_process(
-          COMMAND ${Patch_EXECUTABLE} -N -p2 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-01.patch
+          COMMAND ${Patch_EXECUTABLE} -N -p2 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-01.patch
           WORKING_DIRECTORY ${BOOST_SOURCE} COMMAND_ECHO STDOUT
         )
       endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-02.patch)
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-02.patch)
         execute_process(
-          COMMAND ${Patch_EXECUTABLE} -N -R -p1 -i
-                  ${CMAKE_CURRENT_SOURCE_DIR}/patches/${PROJECT_VERSION}/date_time-02.patch
+          COMMAND ${Patch_EXECUTABLE} -N -R -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-02.patch
           WORKING_DIRECTORY ${BOOST_SOURCE}/libs/date_time COMMAND_ECHO STDOUT
         )
       endif()
@@ -114,10 +112,10 @@ if(USE_ANDROID)
 endif()
 
 set(BOOST_LIBS_REQUIRED header)
-if(NOT BOOST_USE_ALL_OPTIONAL_LIBS)
+if(PROJECT_IS_TOP_LEVEL)
   # Compiled libs without warnings OSX with clang v17.0.6
   list(APPEND
-       BOOST_LIBS_REQUIRED
+       BOOST_INCLUDE_LIBRARIES
        atomic
        chrono
        exception
@@ -163,18 +161,9 @@ set(BOOST_LIBS_OPTIONAL
     CACHE STRING "Boost libs to be compiled"
 )
 
-foreach(lib ${BOOST_LIBS_REQUIRED})
+foreach(lib IN LISTS BOOST_LIBS_REQUIRED)
   include("libs/${lib}.cmake")
 endforeach()
-
-if(BOOST_USE_ALL_OPTIONAL_LIBS)
-  foreach(lib ${BOOST_LIBS_OPTIONAL})
-    # In case only a subset of modules is available
-    if(EXISTS "${BOOST_SOURCE}/libs/${lib}")
-      include("libs/${lib}.cmake")
-    endif()
-  endforeach()
-endif()
 
 #############################################################
 # TODO(CK): Move this to libs/header.cmake in the right file
@@ -191,11 +180,24 @@ target_compile_definitions(
 )
 target_link_libraries(boost INTERFACE Threads::Threads)
 target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
-
-if(NOT PROJECT_IS_TOP_LEVEL)
-  add_library(Boost::asio ALIAS boost)
-endif()
+add_library(Boost::boost ALIAS boost)
 #############################################################
+
+list(APPEND BOOST_INCLUDE_LIBRARIES asio)
+list(APPEND BOOST_INCLUDE_LIBRARIES headers)
+list(REMOVE_DUPLICATES BOOST_INCLUDE_LIBRARIES)
+
+foreach(lib IN LISTS BOOST_INCLUDE_LIBRARIES)
+  # In case only a subset of modules is available
+  if(EXISTS "${BOOST_SOURCE}/libs/${lib}" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/${lib}.cmake")
+    message(STATUS "include(libs/${lib}.cmake)")
+    include("libs/${lib}.cmake")
+  else()
+    message(STATUS "add_library(${lib} INTERFACE)")
+    add_library(${lib} INTERFACE)
+    target_link_libraries(${lib} INTERFACE Boost::boost)
+  endif()
+endforeach()
 
 if(UNIX)
   # TODO(CK): too many deprecated warnings!
@@ -203,10 +205,12 @@ if(UNIX)
     target_compile_options(boost INTERFACE -Wno-deprecated-copy)
   endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 10.0)
-    target_compile_options(boost INTERFACE -Wno-deprecated-copy-dtor -Wno-newline-eof)
+    target_compile_options(
+      boost INTERFACE -Wno-deprecated-copy-dtor -Wno-newline-eof -Wno-deprecated-copy-with-user-provided-copy
+    )
   endif()
   if(USE_APPLE)
-    target_compile_options(boost INTERFACE -Wno-deprecated-declarations -Wno-deprecated-copy-with-user-provided-copy)
+    target_compile_options(boost INTERFACE -Wno-deprecated-declarations)
   endif()
 endif()
 
@@ -242,12 +246,13 @@ if(BOOST_USE_ORIGINAL_PackageProject)
   else()
     list(REMOVE_ITEM BOOST_LIBS locale)
   endif()
+
+  list(REMOVE_DUPLICATES BOOST_LIBS)
   install(TARGETS ${BOOST_LIBS} EXPORT boostTargets)
 else()
   include(cmake/PackageProject.cmake)
 
-  set(BOOST_LIBS ${BOOST_LIBS_REQUIRED})
-  list(REMOVE_ITEM BOOST_LIBS header)
+  set(BOOST_LIBS ${BOOST_INCLUDE_LIBRARIES})
   list(APPEND BOOST_LIBS boost)
 endif()
 
