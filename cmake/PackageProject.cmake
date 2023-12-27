@@ -9,7 +9,7 @@ function(packageProject)
   cmake_parse_arguments(
     PROJECT
     ""
-    "NAME;VERSION;INCLUDE_DIR;INCLUDE_DESTINATION;BINARY_DIR;COMPATIBILITY;EXPORT_HEADER;VERSION_HEADER;NAMESPACE;DISABLE_VERSION_SUFFIX;ARCH_INDEPENDENT;INCLUDE_HEADER_PATTERN;CPACK;"
+    "NAME;VERSION;INCLUDE_DIR;INCLUDE_DESTINATION;BINARY_DIR;COMPATIBILITY;EXPORT_HEADER;VERSION_HEADER;NAMESPACE;DISABLE_VERSION_SUFFIX;ARCH_INDEPENDENT;INCLUDE_HEADER_PATTERN;CPACK;INCLUDE_HEADER_REGEX"
     "TARGETS;DEPENDENCIES"
     ${ARGN}
   )
@@ -97,7 +97,7 @@ function(packageProject)
     )
   endif()
 
-  set(wbpvf_extra_args "")
+  set(_wbpvf_extra_args "")
   if(NOT DEFINED PROJECT_ARCH_INDEPENDENT)
     get_target_property(target_type "${PROJECT_NAME}" TYPE)
     if(TYPE STREQUAL "INTERFACE_LIBRARY")
@@ -106,12 +106,12 @@ function(packageProject)
   endif()
 
   if(PROJECT_ARCH_INDEPENDENT)
-    set(wbpvf_extra_args ARCH_INDEPENDENT)
+    set(_wbpvf_extra_args ARCH_INDEPENDENT)
   endif()
 
   write_basic_package_version_file(
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" VERSION ${PROJECT_VERSION}
-    COMPATIBILITY ${PROJECT_COMPATIBILITY} ${wbpvf_extra_args}
+    COMPATIBILITY ${PROJECT_COMPATIBILITY} ${_wbpvf_extra_args}
   )
 
   install(TARGETS ${PROJECT_TARGETS}
@@ -146,17 +146,23 @@ function(packageProject)
           COMPONENT "${PROJECT_NAME}_Development"
   )
 
-  if(NOT DEFINED PROJECT_INCLUDE_HEADER_PATTERN)
+  set(_include_header_option PATTERN)
+  if(PROJECT_INCLUDE_HEADER_REGEX)
+    set(_include_header_option REGEX)
+    set(PROJECT_INCLUDE_HEADER_PATTERN ${PROJECT_INCLUDE_HEADER_REGEX})
+  elseif(NOT DEFINED PROJECT_INCLUDE_HEADER_PATTERN)
     set(PROJECT_INCLUDE_HEADER_PATTERN "*")
   endif()
 
   if(PROJECT_INCLUDE_DESTINATION AND PROJECT_INCLUDE_DIR)
+    # cmake-format: off
     install(DIRECTORY ${PROJECT_INCLUDE_DIR}/
             DESTINATION ${PROJECT_INCLUDE_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Development"
             FILES_MATCHING
-            PATTERN "${PROJECT_INCLUDE_HEADER_PATTERN}"
+            ${_include_header_option} "${PROJECT_INCLUDE_HEADER_PATTERN}"
     )
+    # cmake-format: on
   endif()
 
   set(${PROJECT_NAME}_VERSION ${PROJECT_VERSION} CACHE INTERNAL "")

@@ -23,7 +23,7 @@
                 "BUILD_SHARED_LIBS": false,
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_CXX_EXTENSIONS": false,
-                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD": "17",
                 "CMAKE_CXX_STANDARD_REQUIRED": true,
                 "CMAKE_DEBUG_POSTFIX": "-d",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
@@ -33,6 +33,7 @@
             },
             "environment": {
                 "CPM_USE_LOCAL_PACKAGES": "NO",
+                "CPM_SOURCE_CACHE": "$env{HOME}/.cache/CPM",
                 "PATH": "$env{HOME}/.local/bin${pathListSep}$penv{PATH}"
             },
             "warnings": {

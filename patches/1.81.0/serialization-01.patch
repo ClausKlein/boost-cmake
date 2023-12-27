@@ -1,0 +1,22 @@
+--- serialization/test/A.cpp.orig	2023-12-23 21:25:58.504660000 +0100
++++ serialization/test/A.cpp	2023-12-23 21:28:56.168284221 +0100
+@@ -206,13 +206,13 @@
+         return w < rhs.w;
+     if(x != rhs.x )
+         return x < rhs.x;
+-    int i = y.compare(rhs.y);
+-    if(i !=  0 )
+-        return i < 0;
++    int iy = y.compare(rhs.y);
++    if(iy !=  0 )
++        return iy < 0;
+     #ifndef BOOST_NO_STD_WSTRING
+-    int j = z.compare(rhs.z);
+-    if(j !=  0 )
+-        return j < 0;
++    int jz = z.compare(rhs.z);
++    if(jz !=  0 )
++        return jz < 0;
+     #endif
+     return false;
+ }

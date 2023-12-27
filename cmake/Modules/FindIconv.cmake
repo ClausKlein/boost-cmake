@@ -5,29 +5,29 @@ function(_iconv_find)
     if(NOT "$ENV{ICONV_ROOT}" STREQUAL "")
       file(TO_CMAKE_PATH "$ENV{ICONV_ROOT}" NATIVE_PATH)
       list(APPEND iconv_roots "${NATIVE_PATH}")
-      set(ICONV_ROOT "${NATIVE_PATH}"
-        CACHE PATH "Location of the Iconv installation" FORCE)
+      set(ICONV_ROOT "${NATIVE_PATH}" CACHE PATH "Location of the Iconv installation" FORCE)
     endif()
   endif()
 
   list(APPEND iconv_library_suffixes "lib")
   list(APPEND iconv_include_suffixes "include")
 
-  find_path(ICONV_INCLUDE_DIR
+  find_path(
+    ICONV_INCLUDE_DIR
     NAMES "iconv.h"
     HINTS ${iconv_roots}
     PATH_SUFFIXES ${iconv_include_suffixes}
-    DOC "Iconv include directory")
+    DOC "Iconv include directory"
+  )
   set(ICONV_INCLUDE_DIR "${ICONV_INCLUDE_DIR}" PARENT_SCOPE)
 
-  find_library(ICONV_LIBRARY
-    NAMES
-      iconv
-      libiconv
-      libiconv2
+  find_library(
+    ICONV_LIBRARY
+    NAMES iconv libiconv libiconv2
     HINTS ${iconv_roots}
     PATH_SUFFIXES ${iconv_library_suffixes}
-    DOC "Iconv library")
+    DOC "Iconv library"
+  )
   set(ICONV_LIBRARY "${ICONV_LIBRARY}" PARENT_SCOPE)
 
   if(ICONV_INCLUDE_DIR AND NOT ICONV_LIBRARY)
@@ -58,12 +58,10 @@ if(ICONV_FOUND)
   endif()
 
   add_library(Iconv::Iconv ${_lib_type} IMPORTED)
-  set_target_properties(Iconv::Iconv PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}")
+  set_target_properties(Iconv::Iconv PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ICONV_INCLUDE_DIR}")
 
   if(NOT HAVE_ICONV_IN_LIBC)
-    set_target_properties(Iconv::Iconv PROPERTIES
-      IMPORTED_LOCATION "${ICONV_LIBRARY}")
+    set_target_properties(Iconv::Iconv PROPERTIES IMPORTED_LOCATION "${ICONV_LIBRARY}")
   endif()
 
   unset(_lib_type)
