@@ -37,16 +37,16 @@ if(IOS_PLATFORM STREQUAL "OS")
 elseif(IOS_PLATFORM STREQUAL "SIMULATOR")
   set(IOS_SDK_NAME "iphonesimulator")
 else()
-  message (FATAL_ERROR "Unsupported IOS_PLATFORM value selected '${IOS_PLATFORM}'. Please choose OS or leave default")
+  message(FATAL_ERROR "Unsupported IOS_PLATFORM value selected '${IOS_PLATFORM}'. Please choose OS or leave default")
 endif()
 
 # Setup iOS developer location unless specified manually with CMAKE_IOS_DEVELOPER_ROOT
 if(NOT CMAKE_IOS_SDK_ROOT)
-  execute_process(COMMAND xcrun --sdk ${IOS_SDK_NAME} --show-sdk-path
-    OUTPUT_VARIABLE CMAKE_IOS_SDK_ROOT
+  execute_process(
+    COMMAND xcrun --sdk ${IOS_SDK_NAME} --show-sdk-path OUTPUT_VARIABLE CMAKE_IOS_SDK_ROOT
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  message (STATUS "Toolchain using default iOS SDK: ${CMAKE_IOS_SDK_ROOT}")
+  message(STATUS "Toolchain using default iOS SDK: ${CMAKE_IOS_SDK_ROOT}")
 endif()
 
 set(CMAKE_IOS_SDK_ROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Location of the selected iOS SDK")
@@ -54,7 +54,7 @@ set(CMAKE_IOS_SDK_ROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Location of the selecte
 # Set the sysroot default to the most recent SDK
 set(CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
 
-# set the architecture for iOS 
+# set the architecture for iOS
 if(IOS_PLATFORM STREQUAL "OS")
   # When ffmpeg has been rebuilt for arm64 use:
   set(IOS_ARCH "armv7;arm64")
@@ -63,27 +63,25 @@ else()
   set(IOS_ARCH "i386;x86_64")
 endif()
 
-set(CMAKE_OSX_ARCHITECTURES "${IOS_ARCH}" CACHE string  "Build architecture for iOS")
+set(CMAKE_OSX_ARCHITECTURES "${IOS_ARCH}" CACHE string "Build architecture for iOS")
 set(CMAKE_ASM_FLAGS "" CACHE STRING "" FORCE)
 foreach(arch ${IOS_ARCH})
   set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -arch ${arch}" CACHE STRING "" FORCE)
 endforeach()
 
 # Set the find root to the iOS developer roots and to user defined paths
-set(CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_SDK_ROOT} ${CMAKE_PREFIX_PATH} CACHE string  "iOS find search path root")
+set(CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_SDK_ROOT} ${CMAKE_PREFIX_PATH} CACHE string "iOS find search path root")
 
 # default to searching for frameworks first
 set(CMAKE_FIND_FRAMEWORK FIRST)
 
 # set up the default search directories for frameworks
 set(CMAKE_SYSTEM_FRAMEWORK_PATH
-  ${CMAKE_IOS_SDK_ROOT}/System/Library/Frameworks
-  ${CMAKE_IOS_SDK_ROOT}/System/Library/PrivateFrameworks
-  ${CMAKE_IOS_SDK_ROOT}/Developer/Library/Frameworks
+    ${CMAKE_IOS_SDK_ROOT}/System/Library/Frameworks ${CMAKE_IOS_SDK_ROOT}/System/Library/PrivateFrameworks
+    ${CMAKE_IOS_SDK_ROOT}/Developer/Library/Frameworks
 )
 
 # only search the iOS sdks, not the remainder of the host filesystem
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-

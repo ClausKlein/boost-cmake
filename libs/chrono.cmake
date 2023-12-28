@@ -17,6 +17,6 @@ if(NOT USE_WINDOWS)
     DOC "rt library"
   )
   if(RT_LIBRARY)
-    target_link_libraries(chrono PRIVATE ${RT_LIBRARY})
+    target_link_libraries(chrono PUBLIC ${RT_LIBRARY})
   endif()
 endif()

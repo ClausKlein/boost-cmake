@@ -1,0 +1,11 @@
+--- filesystem/src/operations.cpp.orig	2023-12-23 06:07:28.741537000 +0100
++++ filesystem/src/operations.cpp	2023-12-23 06:09:49.891242519 +0100
+@@ -310,7 +310,7 @@
+     int fd;
+ 
+     fd_wrapper() BOOST_NOEXCEPT : fd(-1) {}
+-    explicit fd_wrapper(int fd) BOOST_NOEXCEPT : fd(fd) {}
++    explicit fd_wrapper(int _fd) BOOST_NOEXCEPT : fd(_fd) {}
+     ~fd_wrapper() BOOST_NOEXCEPT
+     {
+         if (fd >= 0)

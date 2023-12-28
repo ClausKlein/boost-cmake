@@ -165,22 +165,28 @@ parse:
       pargs: 1
       spelling: CPMUsePackageLock
     packageproject:
+      pargs:
+        nargs: '*'
+        flags: []
+      spelling: packageProject
       kwargs:
+        NAME: 1
+        VERSION: 1
+        NAMESPACE: 1
+        INCLUDE_DIR: 1
+        INCLUDE_DESTINATION: 1
+        INCLUDE_HEADER_REGEX: 1
+        INCLUDE_HEADER_PATTERN: 1
+        ARCH_INDEPENDENT: 1
         BINARY_DIR: 1
         COMPATIBILITY: 1
-        DEPENDENCIES: +
-        DISABLE_VERSION_SUFFIX: 1
-        EXPORT_HEADER: 1
-        INCLUDE_DESTINATION: 1
-        INCLUDE_DIR: 1
-        NAME: 1
-        NAMESPACE: 1
-        VERSION: 1
         VERSION_HEADER: 1
-      pargs:
-        flags: []
-        nargs: '*'
-      spelling: packageProject
+        EXPORT_HEADER: 1
+        DISABLE_VERSION_SUFFIX: 1
+        CPACK: 1
+        DEPENDENCIES: +
+        TARGETS: +
+
 format:
   line_width: 123
   tab_size: 2

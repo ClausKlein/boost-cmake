@@ -1,0 +1,62 @@
+  I can't seem to find a patch in there anywhere.
+  I can't seem to find a patch in there anywhere.
+  I can't seem to find a patch in there anywhere.
+  I can't seem to find a patch in there anywhere.
+--- archive/impl/text_oarchive_impl.ipp.orig	2023-12-23 21:22:51.033703000 +0100
++++ archive/impl/text_oarchive_impl.ipp	2023-12-23 21:23:14.810333664 +0100
+@@ -84,11 +84,11 @@
+ template<class Archive>
+ BOOST_ARCHIVE_DECL 
+ text_oarchive_impl<Archive>::text_oarchive_impl(
+-    std::ostream & os, 
++    std::ostream & _os, 
+     unsigned int flags
+ ) :
+     basic_text_oprimitive<std::ostream>(
+-        os, 
++        _os, 
+         0 != (flags & no_codecvt)
+     ),
+     basic_text_oarchive<Archive>(flags)
+--- archive/impl/text_iarchive_impl.ipp.orig	2023-12-23 21:16:50.614265000 +0100
++++ archive/impl/text_iarchive_impl.ipp	2023-12-23 21:17:18.829580769 +0100
+@@ -107,11 +107,11 @@
+ template<class Archive>
+ BOOST_ARCHIVE_DECL 
+ text_iarchive_impl<Archive>::text_iarchive_impl(
+-    std::istream & is, 
++    std::istream & _is, 
+     unsigned int flags
+ ) :
+     basic_text_iprimitive<std::istream>(
+-        is, 
++        _is, 
+         0 != (flags & no_codecvt)
+     ),
+     basic_text_iarchive<Archive>(flags)
+--- archive/xml_oarchive.hpp.orig	2023-12-23 21:19:15.620859000 +0100
++++ archive/xml_oarchive.hpp	2023-12-23 21:20:24.406085745 +0100
+@@ -118,8 +118,8 @@
+     public xml_oarchive_impl<xml_oarchive>
+ {
+ public:
+-    xml_oarchive(std::ostream & os, unsigned int flags = 0) :
+-        xml_oarchive_impl<xml_oarchive>(os, flags)
++    xml_oarchive(std::ostream & _os, unsigned int flags = 0) :
++        xml_oarchive_impl<xml_oarchive>(_os, flags)
+     {
+         if(0 == (flags & no_header))
+             init();
+--- archive/xml_iarchive.hpp.orig	2023-12-23 21:21:12.486421000 +0100
++++ archive/xml_iarchive.hpp	2023-12-23 21:21:58.757912478 +0100
+@@ -123,8 +123,8 @@
+ class BOOST_SYMBOL_VISIBLE xml_iarchive :
+     public xml_iarchive_impl<xml_iarchive>{
+ public:
+-    xml_iarchive(std::istream & is, unsigned int flags = 0) :
+-        xml_iarchive_impl<xml_iarchive>(is, flags)
++    xml_iarchive(std::istream & _is, unsigned int flags = 0) :
++        xml_iarchive_impl<xml_iarchive>(_is, flags)
+     {
+         if(0 == (flags & no_header))
+             init();

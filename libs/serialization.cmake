@@ -53,3 +53,63 @@ _add_boost_lib(
     $<$<CXX_COMPILER_ID:MSVC>:/Gy>
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fvisibility=hidden -fvisibility-inlines-hidden -ftemplate-depth-255>
 )
+
+_add_boost_lib(
+  NAME serialization_test_A
+  SOURCES
+    ${BOOST_SOURCE}/libs/serialization/test/A.cpp
+)
+
+_add_boost_test(
+  NAME serialization_test
+  LINK
+    Boost::serialization_test_A
+    Boost::serialization
+    Boost::filesystem
+  # TODO(CK): DEFINE
+    # BOOST_HAS_HASH
+    # BOOST_HAS_SLIST
+  TESTS
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_hashed.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_hashed.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_slist.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_slist_ptrs.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_array.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_binary.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_bitset.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_boost_array.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_complex.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_contained_class.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_cyclic_ptrs.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_deque.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_derived_class.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_derived_class_ptr.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_diamond.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_diamond_complex.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_forward_list.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_forward_list_ptrs.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_list.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_list_ptrs.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_map.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_boost_unordered.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_unordered.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_multiple_ptrs.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_native_array.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_new_operator.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_nvp.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_object.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_optional.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_priority_queue.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_queue.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_recursion.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_set.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_boost_unordered.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_unordered.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_shared_ptr.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_simple_class.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_simple_class_ptr.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_stack.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_unique_ptr.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_variant.cpp
+    RUN ${BOOST_SOURCE}/libs/serialization/test/test_vector.cpp
+)
