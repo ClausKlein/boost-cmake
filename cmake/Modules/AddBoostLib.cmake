@@ -17,7 +17,7 @@ function(_add_boost_lib)
     ${ARGN}
   )
 
-  add_library(${BOOSTLIB_NAME} STATIC ${BOOSTLIB_SOURCES})
+  add_library(${BOOSTLIB_NAME} ${BOOSTLIB_SOURCES})
   add_library(Boost::${BOOSTLIB_NAME} ALIAS ${BOOSTLIB_NAME})
   set_target_properties(${BOOSTLIB_NAME} PROPERTIES OUTPUT_NAME "boost_${BOOSTLIB_NAME}" FOLDER "Boost")
   if(NOT BOOST_STANDALONE)
@@ -26,16 +26,17 @@ function(_add_boost_lib)
   target_link_libraries(${BOOSTLIB_NAME} PUBLIC Boost::headers)
   if(MSVC)
     target_compile_options(${BOOSTLIB_NAME} PRIVATE /W0)
-  elseif(NOT BOOST_USE_ALL_OPTIONAL_LIBS)
+  elseif(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
     target_compile_options(
       ${BOOSTLIB_NAME}
-      PRIVATE # XXX -w
-              -Wall
+      PRIVATE -Wall
               -Wextra
               -Wpedantic
               -Werror
               -Wshadow
     )
+  else()
+    target_compile_options(${BOOSTLIB_NAME} PRIVATE -w)
   endif()
   if(BOOSTLIB_LINK)
     target_link_libraries(${BOOSTLIB_NAME} PUBLIC ${BOOSTLIB_LINK})

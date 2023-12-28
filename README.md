@@ -4,7 +4,7 @@
 
 Easy Boost integration in CMake projects!
 
-Only the boost libraries and their dependencies you link to your targets are build!
+Only the boost libraries and their dependencies you link to your targets are build and installed!
 
 ## Code Example
 
@@ -19,11 +19,9 @@ include(GNUInstallDirs)
 
 include(cmake/CPM.cmake)
 
-# PackageProject.cmake will be used to make our target installable
-CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.11.0")
-
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
-CPMAddPackage("gh:ClausKlein/boost-cmake@1.81.0")
+set(BOOST_INCLUDE_LIBRARIES filesystem headers)
+CPMAddPackage("gh:ClausKlein/boost-cmake@1.81.0-rc2")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -31,7 +29,7 @@ target_include_directories(
 ...
 
 target_link_libraries(lib_using_filesystem PUBLIC Boost::filesystem)
-target_link_libraries(lib_using_header_only PUBLIC Boost::boost)
+target_link_libraries(lib_using_header_only PUBLIC Boost::headers)
 ```
 
 ## Configuration
@@ -42,7 +40,7 @@ If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
 set(BOOST_URL http://internal.mirror/boost.7z)
-set(BOOST_URL_SHA256 foobar)
+set(BOOST_URL_SHA256 71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa)
 ```
 
 If you have Boost sources already available and want to point to them, you can use the following:
@@ -57,8 +55,6 @@ using [PackageProject](https://github.com/TheLartians/PackageProject.cmake) i.e.
 if(CMAKE_SKIP_INSTALL_RULES)
   return()
 endif()
-
-install(TARGETS serialization EXPORT BoostTargets)
 
 packageProject(
   NAME ${PROJECT_NAME}

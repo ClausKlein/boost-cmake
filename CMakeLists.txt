@@ -4,6 +4,7 @@ project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.2)
 
 if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "PROJECT_IS_TOP_LEVEL")
+  option(BOOST_BUILD_ALL "Do build all targets" ON)
 else()
   option(BOOST_DISABLE_TESTS "Do not build test targets, even if building standalone" ON)
 endif()
@@ -14,6 +15,8 @@ endif()
 set(BOOST_SUBDIR boost_1_81_0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
   set(FETCHCONTENT_SOURCE_DIR_BOOST "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}" CACHE PATH "Boost source DIR")
+endif()
+if(FETCHCONTENT_SOURCE_DIR_BOOST)
   set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "Manual override")
 endif()
 
@@ -112,7 +115,8 @@ if(USE_ANDROID)
 endif()
 
 set(BOOST_LIBS_REQUIRED header)
-if(PROJECT_IS_TOP_LEVEL)
+
+if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
   # Compiled libs without warnings OSX with clang v17.0.6
   list(APPEND
        BOOST_INCLUDE_LIBRARIES
@@ -183,6 +187,10 @@ target_compile_definitions(boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
 add_library(Boost::boost ALIAS boost)
 #############################################################
 
+if(BOOST_BUILD_ALL)
+  list(APPEND BOOST_INCLUDE_LIBRARIES ${BOOST_LIBS_OPTIONAL})
+endif()
+
 list(APPEND BOOST_INCLUDE_LIBRARIES asio)
 list(APPEND BOOST_INCLUDE_LIBRARIES headers)
 list(REMOVE_DUPLICATES BOOST_INCLUDE_LIBRARIES)
@@ -199,7 +207,7 @@ foreach(lib IN LISTS BOOST_INCLUDE_LIBRARIES)
   endif()
 endforeach()
 
-if(UNIX)
+if(UNIX AND BOOST_STANDALONE)
   # TODO(CK): too many deprecated warnings!
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(boost INTERFACE -Wno-deprecated-copy)
@@ -226,35 +234,35 @@ endif()
 # ---- Install rules ----
 
 # PackageProject.cmake will be used to make our target installable
+include(cmake/PackageProject.cmake)
 
-if(BOOST_USE_ORIGINAL_PackageProject)
-  include(cmake/CPM.cmake)
-  CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.11.0")
+if(BOOST_BUILD_ALL)
+  # include(cmake/CPM.cmake)
+  #NO! CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.11.0")
 
-  set(BOOST_LIBS ${BOOST_LIBS_OPTIONAL})
+  set(BOOST_LIBS ${BOOST_INCLUDE_LIBRARIES})
   list(REMOVE_ITEM BOOST_LIBS test)
   list(APPEND BOOST_LIBS unit_test_framework)
+
   if(NOT TARGET mpi)
     list(REMOVE_ITEM BOOST_LIBS graph_parallel)
   endif()
+
   if(NOT MPI_CXX_FOUND)
     list(REMOVE_ITEM BOOST_LIBS mpi)
   endif()
 
   if(ICONV_FOUND)
-    install(TARGETS boost_locale_deps EXPORT boostTargets)
+    list(APPEND BOOST_LIBS boost_locale_deps)
   else()
     list(REMOVE_ITEM BOOST_LIBS locale)
   endif()
 
   list(REMOVE_DUPLICATES BOOST_LIBS)
-  install(TARGETS ${BOOST_LIBS} EXPORT boostTargets)
 else()
-  include(cmake/PackageProject.cmake)
-
   set(BOOST_LIBS ${BOOST_INCLUDE_LIBRARIES})
-  list(APPEND BOOST_LIBS boost)
 endif()
+list(APPEND BOOST_LIBS boost)
 
 packageProject(
   NAME Boost
