@@ -21,7 +21,8 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
 endif()
 
 set(BOOST_VERSION 1.81.0)
-set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/${BOOST_SUBDIR}.tar.bz2"
+# https://archives.boost.io/release/1.81.0/source/boost_1_81_0.tar.bz2
+set(BOOST_URL "https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_SUBDIR}.tar.bz2"
     CACHE STRING "Boost download URL"
 )
 set(BOOST_URL_SHA256 "71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa"
