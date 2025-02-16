@@ -55,8 +55,8 @@ _add_boost_lib(
 )
 
 # Convenience interface library to link deps to both main library and tests
-add_library(Boost_locale_deps INTERFACE)
-target_link_libraries(locale PRIVATE Boost_locale_deps)
+add_library(boost_locale_deps INTERFACE)
+target_link_libraries(locale PRIVATE boost_locale_deps)
 target_include_directories(locale PRIVATE ${BOOST_SOURCE}/libs/locale/src)
 
 if(BOOST_LOCALE_ENABLE_ICU_BACKEND AND ICU_FOUND)
@@ -72,8 +72,8 @@ if(BOOST_LOCALE_ENABLE_ICU_BACKEND AND ICU_FOUND)
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/numeric.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/time_zone.cpp
   )
-  target_link_libraries(Boost_locale_deps INTERFACE Boost::thread ICU::dt ICU::i18n ICU::uc)
-  target_compile_definitions(Boost_locale_deps INTERFACE BOOST_LOCALE_WITH_ICU=1)
+  target_link_libraries(boost_locale_deps INTERFACE Boost::thread ICU::dt ICU::i18n ICU::uc)
+  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_WITH_ICU=1)
 endif()
 
 if(BOOST_LOCALE_ENABLE_STD_BACKEND)
@@ -86,12 +86,12 @@ if(BOOST_LOCALE_ENABLE_STD_BACKEND)
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/std_backend.cpp
   )
 else()
-  target_compile_definitions(Boost_locale_deps INTERFACE BOOST_LOCALE_NO_STD_BACKEND=1)
+  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_NO_STD_BACKEND=1)
 endif()
 
 if(BOOST_LOCALE_ENABLE_ICONV_BACKEND AND ICONV_FOUND)
-  target_link_libraries(Boost_locale_deps INTERFACE Iconv::Iconv)
-  target_compile_definitions(Boost_locale_deps INTERFACE BOOST_LOCALE_WITH_ICONV=1)
+  target_link_libraries(boost_locale_deps INTERFACE Iconv::Iconv)
+  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_WITH_ICONV=1)
 endif()
 
 if(BOOST_LOCALE_ENABLE_WINAPI_BACKEND)
@@ -103,7 +103,7 @@ if(BOOST_LOCALE_ENABLE_WINAPI_BACKEND)
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/win_backend.cpp
   )
 else()
-  target_compile_definitions(Boost_locale_deps INTERFACE BOOST_LOCALE_NO_WINAPI_BACKEND=1)
+  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_NO_WINAPI_BACKEND=1)
 endif()
 
 if(BOOST_LOCALE_ENABLE_POSIX_BACKEND)
@@ -116,7 +116,7 @@ if(BOOST_LOCALE_ENABLE_POSIX_BACKEND)
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/posix_backend.cpp
   )
 else()
-  target_compile_definitions(Boost_locale_deps INTERFACE BOOST_LOCALE_NO_POSIX_BACKEND=1)
+  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_NO_POSIX_BACKEND=1)
 endif()
 
 if(USE_WINDOWS AND (BOOST_LOCALE_ENABLE_WINAPI_BACKEND OR BOOST_LOCALE_ENABLE_STD_BACKEND))
@@ -129,9 +129,10 @@ endif()
 
 _add_boost_test(
   NAME locale_test
-  LINK Boost::locale Boost_locale_deps
+  LINK Boost::locale boost_locale_deps
+  INCLUDE ${BOOST_SOURCE}/libs/locale/test
   TESTS # Configuration information
-        RUN ${BOOST_SOURCE}/libs/locale/test/test_config.cpp
+        RUN ${BOOST_SOURCE}/libs/locale/test/show_config.cpp
         # Shared
         RUN ${BOOST_SOURCE}/libs/locale/test/test_utf.cpp
         RUN ${BOOST_SOURCE}/libs/locale/test/test_date_time.cpp

@@ -7,4 +7,3 @@ function(check_preprocessor output_variable symbol)
     set(${output_variable} 0 CACHE INTERNAL "Have symbol ${symbol}" FORCE)
   endif()
 endfunction()
-

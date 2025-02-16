@@ -1,0 +1,20 @@
+--- boost/thread/future.hpp~	2022-12-08 02:02:48.000000000 +0100
++++ boost/thread/future.hpp	2023-12-22 08:23:49.936529958 +0100
+@@ -5101,7 +5101,7 @@
+   template <typename F>
+   inline BOOST_THREAD_FUTURE<typename boost::result_of<F(BOOST_THREAD_FUTURE<BOOST_THREAD_FUTURE<R2> >)>::type>
+   BOOST_THREAD_FUTURE<BOOST_THREAD_FUTURE<R2> >::then(launch policy, BOOST_THREAD_FWD_REF(F) func) {
+-    typedef BOOST_THREAD_FUTURE<R2> R;
++    //XXX typedef BOOST_THREAD_FUTURE<R2> R;
+     typedef typename boost::result_of<F(BOOST_THREAD_FUTURE<R>)>::type future_type;
+     BOOST_THREAD_ASSERT_PRECONDITION(this->future_.get()!=0, future_uninitialized());
+ 
+@@ -5175,7 +5175,7 @@
+   template <typename Ex, typename F>
+   inline BOOST_THREAD_FUTURE<typename boost::result_of<F(BOOST_THREAD_FUTURE<BOOST_THREAD_FUTURE<R2> >)>::type>
+   BOOST_THREAD_FUTURE<BOOST_THREAD_FUTURE<R2> >::then(Ex& ex, BOOST_THREAD_FWD_REF(F) func) {
+-    typedef BOOST_THREAD_FUTURE<R2> R;
++    //XXX typedef BOOST_THREAD_FUTURE<R2> R;
+     typedef typename boost::result_of<F(BOOST_THREAD_FUTURE<R>)>::type future_type;
+     BOOST_THREAD_ASSERT_PRECONDITION(this->future_.get()!=0, future_uninitialized());
+ 

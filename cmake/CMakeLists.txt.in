@@ -8,7 +8,7 @@
 #   $ cmake --build cmake-build
 #   $ cmake --build cmake-build --target test
 
-cmake_minimum_required(VERSION 3.21...3.24)
+cmake_minimum_required(VERSION 3.21...3.28)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -40,7 +40,7 @@ set(BOOST_SUPERPROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake/include)
 
 option(CMAKE_CXX_EXTENSIONS "Default value for CXX_EXTENSIONS property of targets." NO)
-option(CMAKE_CXX_STANDARD_REQUIRED "The c++ standard is requrired" YES)
+option(CMAKE_CXX_STANDARD_REQUIRED "The c++ standard is required" YES)
 option(BUILD_SHARED_LIBS "Build shared libraries" ${PROJECT_IS_TOP_LEVEL})
 
 ### see tools/cmake/include/BoostRoot.cmake
@@ -52,22 +52,6 @@ set(CMAKE_CXX_STANDARD @CMAKE_CXX_STANDARD@ CACHE STRING "The used c++ standard"
 
 ### Workaround to compile some boost libs. CK
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-# NOTE: prepared, but not used! CK
-### Define the header-only Boost targets
-# add_library(Boost::boost SYSTEM INTERFACE IMPORTED GLOBAL)
-# add_library(Boost::headers ALIAS Boost::boost)
-# target_include_directories(Boost::boost INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-# target_compile_features(Boost::boost INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
-# target_compile_definitions(
-#   Boost::boost
-#   INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT>
-#             BOOST_ASIO_NO_DEPRECATED
-#             BOOST_SYSTEM_NO_DEPRECATED
-#             BOOST_THREAD_VERSION=5
-#             BOOST_THREAD_USES_CHRONO
-#             BOOST_THREAD_PROVIDES_EXECUTORS
-# )
 
 if(PROJECT_IS_TOP_LEVEL)
   enable_testing()

@@ -1,0 +1,58 @@
+{
+    "version": 7,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 27,
+        "patch": 0
+    },
+    "include": [
+        "CMakeReleasePresets.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "ninja-multi",
+            "inherits": "Release",
+            "displayName": "Ninja Multi-Config",
+            "description": "Build using Ninja Multi-Config generator",
+            "generator": "Ninja Multi-Config"
+        },
+        {
+            "name": "windows-only",
+            "inherits": "Release",
+            "displayName": "Windows-only configuration",
+            "description": "This build is only available on Windows",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "Release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "Release"
+                },
+                {
+                    "type": "build",
+                    "name": "Release"
+                },
+                {
+                    "type": "test",
+                    "name": "Release"
+                },
+                {
+                    "type": "build",
+                    "name": "install"
+                },
+                {
+                    "type": "package",
+                    "name": "Release"
+                }
+            ]
+        }
+    ]
+}

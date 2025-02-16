@@ -1,6 +1,7 @@
+*~
 *.sw?
 *.tmp
 build*/
 boost/
-boost_*.tar.xz
 .idea/
+stagedir/

@@ -6,8 +6,13 @@ function(_add_boost_test)
   set(options)
   set(oneValueArgs NAME)
   set(multiValueArgs LINK DEFINE INCLUDE TESTS)
-  cmake_parse_arguments(BOOSTTEST "${options}" "${oneValueArgs}"
-                        "${multiValueArgs}" ${ARGN})
+  cmake_parse_arguments(
+    BOOSTTEST
+    "${options}"
+    "${oneValueArgs}"
+    "${multiValueArgs}"
+    ${ARGN}
+  )
 
   # Split all arguments for TESTS in groups
   list(LENGTH BOOSTTEST_TESTS arg_len)
@@ -39,13 +44,8 @@ function(_add_boost_test)
       get_filename_component(source_name ${main_src} NAME_WE)
       set(test_name Boost_${BOOSTTEST_NAME}_${source_name})
       add_executable(${test_name} ${test_files})
-      add_test(NAME ${test_name}
-        COMMAND ${test_name}
-        WORKING_DIRECTORY ${BOOST_SOURCE}/status
-      )
-      set_target_properties(${test_name} PROPERTIES
-        FOLDER "Boost/Tests"
-      )
+      add_test(NAME ${test_name} COMMAND ${test_name} WORKING_DIRECTORY ${BOOST_SOURCE}/status)
+      set_target_properties(${test_name} PROPERTIES FOLDER "Boost/Tests")
       if(MSVC)
         target_compile_options(${test_name} PRIVATE /bigobj)
       endif()
