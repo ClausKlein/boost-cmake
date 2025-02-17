@@ -126,7 +126,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
        filesystem
        math
        regex
-       serialization
+       #NO! serialization
        system
        thread
        timer
@@ -149,13 +149,13 @@ set(BOOST_LIBS_OPTIONAL
     # FIXME: locale  # NOTE: to complex, refactory needed!
     # TODO(CK) log   # errors
     math
-    mpi # warnings
+    #NO! mpi # warnings and depends on serialization?
     graph_parallel # TODO(CK): depends on graph; does this really depends on mpi?
     program_options
     # XXX python # NOTE: not supported, to complex module!
     random # warnings
     regex
-    serialization
+    #NO! serialization
     system
     test # warnings
     thread
