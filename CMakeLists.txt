@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.21...3.28)
+cmake_minimum_required(VERSION 3.21...3.31)
 
-project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.3)
+project(Boost-CMake LANGUAGES C CXX VERSION 1.81.0.4)
 
 if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "PROJECT_IS_TOP_LEVEL")
@@ -21,7 +21,6 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
 endif()
 
 set(BOOST_VERSION 1.81.0)
-# https://archives.boost.io/release/1.81.0/source/boost_1_81_0.tar.bz2
 set(BOOST_URL "https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_SUBDIR}.tar.bz2"
     CACHE STRING "Boost download URL"
 )
@@ -31,12 +30,12 @@ set(BOOST_URL_SHA256 "71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986b
 
 # ---- Add Boost source tar archive via FetchContent ----
 include(FetchContent)
-FetchContent_Declare(Boost URL ${BOOST_URL} URL_HASH SHA256=${BOOST_URL_SHA256})
+FetchContent_Declare(Boost URL ${BOOST_URL} URL_HASH SHA256=${BOOST_URL_SHA256} SOURCE_SUBDIR non_existing_subdir)
 
 FetchContent_GetProperties(Boost)
 if(NOT Boost_POPULATED)
   message(STATUS "Fetching Boost")
-  FetchContent_Populate(Boost)
+  FetchContent_MakeAvailable(Boost)
   message(STATUS "Fetching Boost - done")
   set(BOOST_SOURCE ${boost_SOURCE_DIR})
 
@@ -99,8 +98,8 @@ include(AddBoostTest)
 
 # NOTE: Install the missing CMakeList.txt file, but it will not yet used! CK
 #       If the tar archive contains one, it will not overridden.
-configure_file(cmake/CMakeLists.txt.in ${BOOST_SOURCE}/CMakeLists.txt @ONLY)
-configure_file(cmake/Modules/ccache.cmake ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake COPYONLY)
+#XXX configure_file(cmake/CMakeLists.txt.in ${BOOST_SOURCE}/CMakeLists.txt @ONLY)
+#XXX configure_file(cmake/Modules/ccache.cmake ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake COPYONLY)
 
 # NOTE: Use the FOLDER target property to organize targets into folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)

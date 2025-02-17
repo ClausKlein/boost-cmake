@@ -1,5 +1,14 @@
 --- boost/thread/future.hpp~	2022-12-08 02:02:48.000000000 +0100
 +++ boost/thread/future.hpp	2023-12-22 08:23:49.936529958 +0100
+@@ -4669,7 +4669,7 @@
+       }
+       run_it& operator=(BOOST_THREAD_RV_REF(run_it) x) BOOST_NOEXCEPT {
+         if (this != &x) {
+-          that_=x.that;
++          that_=x.that_;
+           x.that_.reset();
+         }
+         return *this;
 @@ -5101,7 +5101,7 @@
    template <typename F>
    inline BOOST_THREAD_FUTURE<typename boost::result_of<F(BOOST_THREAD_FUTURE<BOOST_THREAD_FUTURE<R2> >)>::type>
