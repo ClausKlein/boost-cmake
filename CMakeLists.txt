@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21...3.31)
 
-project(Boost-CMake LANGUAGES C CXX VERSION 1.87.0.0)
+project(Boost-CMake LANGUAGES C CXX VERSION 1.84.0.0)
 
 if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "PROJECT_IS_TOP_LEVEL")
@@ -12,7 +12,7 @@ endif()
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-set(BOOST_SUBDIR boost_1_87_0)
+set(BOOST_SUBDIR boost_1_84_0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
   set(FETCHCONTENT_SOURCE_DIR_BOOST "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}" CACHE PATH "Boost source DIR")
 endif()
@@ -20,11 +20,11 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
   set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "Manual override")
 endif()
 
-set(BOOST_VERSION 1.87.0)
+set(BOOST_VERSION 1.84.0)
 set(BOOST_URL "https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_SUBDIR}.tar.bz2"
     CACHE STRING "Boost download URL"
 )
-set(BOOST_URL_SHA256 "af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89"
+set(BOOST_URL_SHA256 "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454"
     CACHE STRING "Boost download URL SHA256 checksum"
 )
 
@@ -126,7 +126,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
        filesystem
        math
        regex
-       #NO! serialization
+       serialization
        system
        thread
        timer
@@ -149,13 +149,13 @@ set(BOOST_LIBS_OPTIONAL
     # FIXME: locale  # NOTE: to complex, refactory needed!
     # TODO(CK) log   # errors
     math
-    #NO! mpi # warnings and depends on serialization?
+    mpi # warnings and depends on serialization?
     graph_parallel # TODO(CK): depends on graph; does this really depends on mpi?
     program_options
     # XXX python # NOTE: not supported, to complex module!
     random # warnings
     regex
-    #NO! serialization
+    serialization
     system
     test # warnings
     thread
