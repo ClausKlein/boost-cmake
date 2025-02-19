@@ -21,7 +21,7 @@ include(cmake/CPM.cmake)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
 set(BOOST_INCLUDE_LIBRARIES filesystem headers)
-CPMAddPackage("gh:ClausKlein/boost-cmake@1.84.0-rc1")
+CPMAddPackage("gh:ClausKlein/boost-cmake@1.87.0-dev1")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -39,8 +39,8 @@ Boost will automatically be downloaded from https://archive.boost.io/release !
 If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
-set(BOOST_URL http://internal.mirror/boost_1_84_0.tar.bz2)
-set(BOOST_URL_SHA256 cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454)
+set(BOOST_URL http://internal.mirror/boost_1_87_0.tar.bz2)
+set(BOOST_URL_SHA256 af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89)
 ```
 
 If you have Boost sources already available and want to point to them, you can use the following:
