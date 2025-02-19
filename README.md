@@ -21,7 +21,7 @@ include(cmake/CPM.cmake)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
 set(BOOST_INCLUDE_LIBRARIES filesystem headers)
-CPMAddPackage("gh:ClausKlein/boost-cmake@1.81.0-rc4")
+CPMAddPackage("gh:ClausKlein/boost-cmake@1.84.0-rc1")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -34,13 +34,13 @@ target_link_libraries(lib_using_header_only PUBLIC Boost::headers)
 
 ## Configuration
 
-Boost will automatically be downloaded from https://boostorg.jfrog.io/artifactory/main/release !
+Boost will automatically be downloaded from https://archive.boost.io/release !
 
 If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
-set(BOOST_URL http://internal.mirror/boost.7z)
-set(BOOST_URL_SHA256 71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa)
+set(BOOST_URL http://internal.mirror/boost_1_84_0.tar.bz2)
+set(BOOST_URL_SHA256 cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454)
 ```
 
 If you have Boost sources already available and want to point to them, you can use the following:
@@ -66,7 +66,7 @@ packageProject(
   INCLUDE_HEADER_PATTERN "*.h"
   DISABLE_VERSION_SUFFIX YES
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "Boost 1.81"
+  DEPENDENCIES "Boost 1.84"
 )
 
 include(CPack)
