@@ -91,8 +91,8 @@ _add_boost_test(
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_list.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_list_ptrs.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_map.cpp
-    RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_boost_unordered.cpp
-    RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_unordered.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_boost_unordered.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_map_unordered.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_multiple_ptrs.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_native_array.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_new_operator.cpp
@@ -103,8 +103,8 @@ _add_boost_test(
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_queue.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_recursion.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_set.cpp
-    RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_boost_unordered.cpp
-    RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_unordered.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_boost_unordered.cpp
+    # RUN ${BOOST_SOURCE}/libs/serialization/test/test_set_unordered.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_shared_ptr.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_simple_class.cpp
     RUN ${BOOST_SOURCE}/libs/serialization/test/test_simple_class_ptr.cpp

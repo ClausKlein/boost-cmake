@@ -40,7 +40,8 @@ _add_boost_lib(
     ${context_srcs}
   DEFINE_PRIVATE
     BOOST_CONTEXT_SOURCE=1
-    BOOST_CONTEXT_EXPORT
+    BOOST_CONTEXT_EXPORT=EXPORT
+    BOOST_CONTEXT_NO_LIB=
   LINK
     Boost::thread
 )
