@@ -1,4 +1,8 @@
-option(BOOST_LOG_WITHOUT_DEBUG_OUTPUT "Disable debug output backend in Boost Log" OFF)
+option(
+    BOOST_LOG_WITHOUT_DEBUG_OUTPUT
+    "Disable debug output backend in Boost Log"
+    OFF
+)
 option(BOOST_LOG_WITHOUT_EVENT_LOG "Disable event log backend in Boost Log" OFF)
 option(BOOST_LOG_WITHOUT_SYSLOG "Disable syslog backend in Boost Log" OFF)
 
@@ -62,14 +66,15 @@ _add_boost_lib(
     >
 )
 
-try_compile(HAVE_PTHREAD_MUTEX_ROBUST
-  "${CMAKE_CURRENT_BINARY_DIR}"
-  "${BOOST_SOURCE}/libs/log/config/pthread-mutex-robust/pthread_mutex_robust.cpp"
-  COMPILE_DEFINITIONS _XOPEN_SOURCE=600 _GNU_SOURCE=1
+try_compile(
+    HAVE_PTHREAD_MUTEX_ROBUST
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${BOOST_SOURCE}/libs/log/config/pthread-mutex-robust/pthread_mutex_robust.cpp"
+    COMPILE_DEFINITIONS _XOPEN_SOURCE=600 _GNU_SOURCE=1
 )
 if(HAVE_PTHREAD_MUTEX_ROBUST)
-  target_compile_definitions(log PRIVATE BOOST_LOG_HAS_PTHREAD_MUTEX_ROBUST)
-  message(STATUS "BOOST_LOG_HAS_PTHREAD_MUTEX_ROBUST")
+    target_compile_definitions(log PRIVATE BOOST_LOG_HAS_PTHREAD_MUTEX_ROBUST)
+    message(STATUS "BOOST_LOG_HAS_PTHREAD_MUTEX_ROBUST")
 endif()
 
 # try_compile(HAVE_ATOMIC_INT32
@@ -81,58 +86,61 @@ endif()
 #   message(WARNING "BOOST_LOG_WITHOUT_IPC")
 #   target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_IPC)
 # else()
-  if(USE_WINDOWS)
-    target_sources(log PRIVATE
-      ${BOOST_SOURCE}/libs/log/src/windows/object_name.cpp
-      ${BOOST_SOURCE}/libs/log/src/windows/mapped_shared_memory.cpp
-      ${BOOST_SOURCE}/libs/log/src/windows/ipc_sync_wrappers.cpp
-      ${BOOST_SOURCE}/libs/log/src/windows/ipc_reliable_message_queue.cpp
+if(USE_WINDOWS)
+    target_sources(
+        log
+        PRIVATE
+            ${BOOST_SOURCE}/libs/log/src/windows/object_name.cpp
+            ${BOOST_SOURCE}/libs/log/src/windows/mapped_shared_memory.cpp
+            ${BOOST_SOURCE}/libs/log/src/windows/ipc_sync_wrappers.cpp
+            ${BOOST_SOURCE}/libs/log/src/windows/ipc_reliable_message_queue.cpp
     )
     target_link_libraries(log PRIVATE secur32)
-  else()
-    target_sources(log PRIVATE
-      ${BOOST_SOURCE}/libs/log/src/posix/object_name.cpp
-      ${BOOST_SOURCE}/libs/log/src/posix/ipc_reliable_message_queue.cpp
+else()
+    target_sources(
+        log
+        PRIVATE
+            ${BOOST_SOURCE}/libs/log/src/posix/object_name.cpp
+            ${BOOST_SOURCE}/libs/log/src/posix/ipc_reliable_message_queue.cpp
     )
-  endif()
+endif()
 # endif()
 
-try_compile(HAVE_NATIVE_SYSLOG
-  "${CMAKE_CURRENT_BINARY_DIR}"
-  "${BOOST_SOURCE}/libs/log/config/native-syslog/native_syslog.cpp"
+try_compile(
+    HAVE_NATIVE_SYSLOG
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${BOOST_SOURCE}/libs/log/config/native-syslog/native_syslog.cpp"
 )
 if(NOT BOOST_LOG_WITHOUT_SYSLOG AND HAVE_NATIVE_SYSLOG)
-  message(STATUS "HAVE_NATIVE_SYSLOG")
-  target_compile_definitions(log PRIVATE BOOST_LOG_USE_NATIVE_SYSLOG)
-  target_sources(log PRIVATE
-    ${BOOST_SOURCE}/libs/log/src/syslog_backend.cpp
-  )
+    message(STATUS "HAVE_NATIVE_SYSLOG")
+    target_compile_definitions(log PRIVATE BOOST_LOG_USE_NATIVE_SYSLOG)
+    target_sources(log PRIVATE ${BOOST_SOURCE}/libs/log/src/syslog_backend.cpp)
 else()
-  target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_SYSLOG)
+    target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_SYSLOG)
 endif()
 
-find_program(MC_EXECUTABLE mc
-  DOC "Message Compiler executable"
-)
+find_program(MC_EXECUTABLE mc DOC "Message Compiler executable")
 if(NOT BOOST_LOG_WITHOUT_EVENT_LOG AND MC_EXECUTABLE AND FALSE)
-  # TODO: Enable this on Windows
-  # windows/simple_event_log.mc should be compiled with mc.exe
-  target_sources(log PRIVATE
-    ${BOOST_SOURCE}/libs/log/src/windows/event_log_backend.cpp
-  )
-  target_link_libraries(log PRIVATE psapi)
+    # TODO: Enable this on Windows
+    # windows/simple_event_log.mc should be compiled with mc.exe
+    target_sources(
+        log
+        PRIVATE ${BOOST_SOURCE}/libs/log/src/windows/event_log_backend.cpp
+    )
+    target_link_libraries(log PRIVATE psapi)
 else()
-  target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_EVENT_LOG)
-  message(STATUS "BOOST_LOG_WITHOUT_EVENT_LOG")
+    target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_EVENT_LOG)
+    message(STATUS "BOOST_LOG_WITHOUT_EVENT_LOG")
 endif()
 
 if(USE_WINDOWS AND NOT BOOST_LOG_WITHOUT_DEBUG_OUTPUT)
-  target_sources(log PRIVATE
-    ${BOOST_SOURCE}/libs/log/src/windows/debug_output_backend.cpp
-  )
+    target_sources(
+        log
+        PRIVATE ${BOOST_SOURCE}/libs/log/src/windows/debug_output_backend.cpp
+    )
 else()
-  message(STATUS "BOOST_LOG_WITHOUT_DEBUG_OUTPUT")
-  target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_DEBUG_OUTPUT)
+    message(STATUS "BOOST_LOG_WITHOUT_DEBUG_OUTPUT")
+    target_compile_definitions(log PRIVATE BOOST_LOG_WITHOUT_DEBUG_OUTPUT)
 endif()
 
 #TODO: Handle SSSE3 and AVX2 optimizations
@@ -161,7 +169,10 @@ _add_boost_lib(
 )
 
 add_library(Boost_log_common INTERFACE)
-target_include_directories(Boost_log_common INTERFACE ${BOOST_SOURCE}/libs/log/test/common)
+target_include_directories(
+    Boost_log_common
+    INTERFACE ${BOOST_SOURCE}/libs/log/test/common
+)
 
 _add_boost_test(
   NAME log_test

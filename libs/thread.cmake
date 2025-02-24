@@ -1,13 +1,13 @@
 if(USE_WINDOWS)
-  set(THREAD_SRCS
-    ${BOOST_SOURCE}/libs/thread/src/win32/thread.cpp
-    ${BOOST_SOURCE}/libs/thread/src/win32/tss_pe.cpp
-  )
+    set(THREAD_SRCS
+        ${BOOST_SOURCE}/libs/thread/src/win32/thread.cpp
+        ${BOOST_SOURCE}/libs/thread/src/win32/tss_pe.cpp
+    )
 else()
-  set(THREAD_SRCS
-    ${BOOST_SOURCE}/libs/thread/src/pthread/thread.cpp
-    ${BOOST_SOURCE}/libs/thread/src/pthread/once.cpp
-  )
+    set(THREAD_SRCS
+        ${BOOST_SOURCE}/libs/thread/src/pthread/thread.cpp
+        ${BOOST_SOURCE}/libs/thread/src/pthread/once.cpp
+    )
 endif()
 
 _add_boost_lib(
@@ -21,10 +21,8 @@ _add_boost_lib(
     Boost::chrono
 )
 if(NOT USE_WINDOWS)
-  find_package(Threads REQUIRED)
+    find_package(Threads REQUIRED)
 
-  target_link_libraries(thread PUBLIC Threads::Threads)
-  target_compile_definitions(thread PRIVATE
-    BOOST_THREAD_POSIX
-  )
+    target_link_libraries(thread PUBLIC Threads::Threads)
+    target_compile_definitions(thread PRIVATE BOOST_THREAD_POSIX)
 endif()

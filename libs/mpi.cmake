@@ -1,7 +1,7 @@
 find_package(MPI)
 
 if(NOT MPI_CXX_FOUND)
-  return()
+    return()
 endif()
 
 _add_boost_lib(
