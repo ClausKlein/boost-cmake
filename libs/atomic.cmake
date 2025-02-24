@@ -1,10 +1,13 @@
 set(atomic_srcs
-        ${BOOST_SOURCE}/libs/atomic/src/lock_pool.cpp
-        ${BOOST_SOURCE}/libs/atomic/src/find_address_sse2.cpp)
+    ${BOOST_SOURCE}/libs/atomic/src/lock_pool.cpp
+    ${BOOST_SOURCE}/libs/atomic/src/find_address_sse2.cpp
+)
 
-if (WIN32)
-  set(atomic_libs ${atomic_srcs}
-          ${BOOST_SOURCE}/libs/atomic/src/wait_ops_windows.cpp)
+if(WIN32)
+    set(atomic_libs
+        ${atomic_srcs}
+        ${BOOST_SOURCE}/libs/atomic/src/wait_ops_windows.cpp
+    )
 endif()
 
 _add_boost_lib(

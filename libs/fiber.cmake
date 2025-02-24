@@ -22,9 +22,9 @@ _add_boost_lib(
   LINK
     Boost::context
 )
-set_target_properties(fiber PROPERTIES
-  CXX_STANDARD ${CMAKE_CXX_STANDARD}
-  CXX_STANDARD_REQUIRED ON
+set_target_properties(
+    fiber
+    PROPERTIES CXX_STANDARD ${CMAKE_CXX_STANDARD} CXX_STANDARD_REQUIRED ON
 )
 
 _add_boost_test(

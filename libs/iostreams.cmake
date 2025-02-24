@@ -1,5 +1,13 @@
-option(BOOST_IOSTREAMS_ENABLE_BZIP2 "Enable bzip2 support in Boost Iostreams if available" ON)
-option(BOOST_IOSTREAMS_ENABLE_ZLIB "Enable zlib support in Boost Iostreams if available" ON)
+option(
+    BOOST_IOSTREAMS_ENABLE_BZIP2
+    "Enable bzip2 support in Boost Iostreams if available"
+    ON
+)
+option(
+    BOOST_IOSTREAMS_ENABLE_ZLIB
+    "Enable zlib support in Boost Iostreams if available"
+    ON
+)
 
 _add_boost_lib(
   NAME iostreams
@@ -11,28 +19,27 @@ _add_boost_lib(
 )
 
 if(BOOST_IOSTREAMS_ENABLE_BZIP2)
-  find_package(BZip2)
-  if(BZIP2_FOUND)
-    target_sources(iostreams PRIVATE
-      ${BOOST_SOURCE}/libs/iostreams/src/bzip2.cpp
-    )
-    target_link_libraries(iostreams PRIVATE
-      BZip2::BZip2
-    )
-  endif()
+    find_package(BZip2)
+    if(BZIP2_FOUND)
+        target_sources(
+            iostreams
+            PRIVATE ${BOOST_SOURCE}/libs/iostreams/src/bzip2.cpp
+        )
+        target_link_libraries(iostreams PRIVATE BZip2::BZip2)
+    endif()
 endif()
 
 if(BOOST_IOSTREAMS_ENABLE_ZLIB)
-  find_package(ZLIB)
-  if(ZLIB_FOUND)
-    target_sources(iostreams PRIVATE
-      ${BOOST_SOURCE}/libs/iostreams/src/gzip.cpp
-      ${BOOST_SOURCE}/libs/iostreams/src/zlib.cpp
-    )
-    target_link_libraries(iostreams PRIVATE
-      ZLIB::ZLIB
-    )
-  endif()
+    find_package(ZLIB)
+    if(ZLIB_FOUND)
+        target_sources(
+            iostreams
+            PRIVATE
+                ${BOOST_SOURCE}/libs/iostreams/src/gzip.cpp
+                ${BOOST_SOURCE}/libs/iostreams/src/zlib.cpp
+        )
+        target_link_libraries(iostreams PRIVATE ZLIB::ZLIB)
+    endif()
 endif()
 
 _add_boost_test(
@@ -90,26 +97,26 @@ _add_boost_test(
 )
 
 if(BZIP2_FOUND)
-  _add_boost_test(
-    NAME iostreams_test
-    LINK
-      Boost::iostreams
-      Boost::filesystem
-      Boost::unit_test_framework
-    TESTS
-      RUN ${BOOST_SOURCE}/libs/iostreams/test/bzip2_test.cpp
-  )
+    _add_boost_test(
+      NAME iostreams_test
+      LINK
+        Boost::iostreams
+        Boost::filesystem
+        Boost::unit_test_framework
+      TESTS
+        RUN ${BOOST_SOURCE}/libs/iostreams/test/bzip2_test.cpp
+    )
 endif()
 
 if(ZLIB_FOUND)
-  _add_boost_test(
-    NAME iostreams_test
-    LINK
-      Boost::iostreams
-      Boost::filesystem
-      Boost::unit_test_framework
-    TESTS
-      RUN ${BOOST_SOURCE}/libs/iostreams/test/gzip_test.cpp
-      RUN ${BOOST_SOURCE}/libs/iostreams/test/zlib_test.cpp
-  )
+    _add_boost_test(
+      NAME iostreams_test
+      LINK
+        Boost::iostreams
+        Boost::filesystem
+        Boost::unit_test_framework
+      TESTS
+        RUN ${BOOST_SOURCE}/libs/iostreams/test/gzip_test.cpp
+        RUN ${BOOST_SOURCE}/libs/iostreams/test/zlib_test.cpp
+    )
 endif()

@@ -1,39 +1,62 @@
 if(USE_WINDOWS)
-  set(BOOST_LOCALE_ENABLE_WINAPI_BACKEND_DEFAULT ON)
+    set(BOOST_LOCALE_ENABLE_WINAPI_BACKEND_DEFAULT ON)
 else()
-  set(BOOST_LOCALE_ENABLE_WINAPI_BACKEND_DEFAULT OFF)
+    set(BOOST_LOCALE_ENABLE_WINAPI_BACKEND_DEFAULT OFF)
 endif()
 
 if(USE_FREEBSD)
-  try_compile(HAVE_FREEBSD_XLOCALE "${CMAKE_CURRENT_BINARY_DIR}" "${BOOST_SOURCE}/libs/locale/build/has_xlocale.cpp")
+    try_compile(
+        HAVE_FREEBSD_XLOCALE
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        "${BOOST_SOURCE}/libs/locale/build/has_xlocale.cpp"
+    )
 endif()
 if(USE_LINUX OR USE_APPLE OR (USE_FREEBSD AND HAVE_FREEBSD_XLOCALE))
-  set(BOOST_LOCALE_ENABLE_POSIX_BACKEND_DEFAULT ON)
+    set(BOOST_LOCALE_ENABLE_POSIX_BACKEND_DEFAULT ON)
 else()
-  set(BOOST_LOCALE_ENABLE_POSIX_BACKEND_DEFAULT OFF)
+    set(BOOST_LOCALE_ENABLE_POSIX_BACKEND_DEFAULT OFF)
 endif()
 
-option(BOOST_LOCALE_ENABLE_ICU_BACKEND "Enable ICU backend in Boost Locale if available" ON)
-option(BOOST_LOCALE_ENABLE_ICONV_BACKEND "Enable Iconv backend in Boost Locale if available" ON)
-option(BOOST_LOCALE_ENABLE_WINAPI_BACKEND "Enable Winapi backend in Boost Locale if available"
-       ${BOOST_LOCALE_ENABLE_WINAPI_BACKEND_DEFAULT}
+option(
+    BOOST_LOCALE_ENABLE_ICU_BACKEND
+    "Enable ICU backend in Boost Locale if available"
+    ON
 )
-option(BOOST_LOCALE_ENABLE_STD_BACKEND "Enable STD backend in Boost Locale if available" ON)
-option(BOOST_LOCALE_ENABLE_POSIX_BACKEND "Enable Posix backend in Boost Locale if available"
-       ${BOOST_LOCALE_ENABLE_POSIX_BACKEND_DEFAULT}
+option(
+    BOOST_LOCALE_ENABLE_ICONV_BACKEND
+    "Enable Iconv backend in Boost Locale if available"
+    ON
+)
+option(
+    BOOST_LOCALE_ENABLE_WINAPI_BACKEND
+    "Enable Winapi backend in Boost Locale if available"
+    ${BOOST_LOCALE_ENABLE_WINAPI_BACKEND_DEFAULT}
+)
+option(
+    BOOST_LOCALE_ENABLE_STD_BACKEND
+    "Enable STD backend in Boost Locale if available"
+    ON
+)
+option(
+    BOOST_LOCALE_ENABLE_POSIX_BACKEND
+    "Enable Posix backend in Boost Locale if available"
+    ${BOOST_LOCALE_ENABLE_POSIX_BACKEND_DEFAULT}
 )
 
 if(BOOST_LOCALE_ENABLE_ICU_BACKEND)
-  find_package(ICU COMPONENTS uc dt i18n)
+    find_package(ICU COMPONENTS uc dt i18n)
 endif()
 
 if(BOOST_LOCALE_ENABLE_ICONV_BACKEND)
-  find_package(Iconv)
+    find_package(Iconv)
 endif()
 
 if(NOT ICU_FOUND AND NOT ICONV_FOUND AND NOT USE_WINDOWS)
-  message(STATUS "Boost locale unsupported on platform: need either iconv or ICU.")
-  return()
+    message(
+        STATUS
+        "Boost locale unsupported on platform: need either iconv or ICU."
+    )
+    return()
 endif()
 
 _add_boost_lib(
@@ -60,9 +83,10 @@ target_link_libraries(locale PRIVATE boost_locale_deps)
 target_include_directories(locale PRIVATE ${BOOST_SOURCE}/libs/locale/src)
 
 if(BOOST_LOCALE_ENABLE_ICU_BACKEND AND ICU_FOUND)
-  target_sources(
-    locale
-    PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/boundary.cpp
+    target_sources(
+        locale
+        PRIVATE
+            ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/boundary.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/codecvt.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/collator.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/conversion.cpp
@@ -71,60 +95,94 @@ if(BOOST_LOCALE_ENABLE_ICU_BACKEND AND ICU_FOUND)
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/icu_backend.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/numeric.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/icu/time_zone.cpp
-  )
-  target_link_libraries(boost_locale_deps INTERFACE Boost::thread ICU::dt ICU::i18n ICU::uc)
-  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_WITH_ICU=1)
+    )
+    target_link_libraries(
+        boost_locale_deps
+        INTERFACE Boost::thread ICU::dt ICU::i18n ICU::uc
+    )
+    target_compile_definitions(
+        boost_locale_deps
+        INTERFACE BOOST_LOCALE_WITH_ICU=1
+    )
 endif()
 
 if(BOOST_LOCALE_ENABLE_STD_BACKEND)
-  target_sources(
-    locale
-    PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/codecvt.cpp
+    target_sources(
+        locale
+        PRIVATE
+            ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/codecvt.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/collate.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/converter.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/numeric.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/std/std_backend.cpp
-  )
+    )
 else()
-  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_NO_STD_BACKEND=1)
+    target_compile_definitions(
+        boost_locale_deps
+        INTERFACE BOOST_LOCALE_NO_STD_BACKEND=1
+    )
 endif()
 
 if(BOOST_LOCALE_ENABLE_ICONV_BACKEND AND ICONV_FOUND)
-  target_link_libraries(boost_locale_deps INTERFACE Iconv::Iconv)
-  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_WITH_ICONV=1)
+    target_link_libraries(boost_locale_deps INTERFACE Iconv::Iconv)
+    target_compile_definitions(
+        boost_locale_deps
+        INTERFACE BOOST_LOCALE_WITH_ICONV=1
+    )
 endif()
 
 if(BOOST_LOCALE_ENABLE_WINAPI_BACKEND)
-  target_sources(
-    locale
-    PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/collate.cpp
+    target_sources(
+        locale
+        PRIVATE
+            ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/collate.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/converter.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/numeric.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/win_backend.cpp
-  )
+    )
 else()
-  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_NO_WINAPI_BACKEND=1)
+    target_compile_definitions(
+        boost_locale_deps
+        INTERFACE BOOST_LOCALE_NO_WINAPI_BACKEND=1
+    )
 endif()
 
 if(BOOST_LOCALE_ENABLE_POSIX_BACKEND)
-  target_sources(
-    locale
-    PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/collate.cpp
+    target_sources(
+        locale
+        PRIVATE
+            ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/collate.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/converter.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/numeric.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/codecvt.cpp
             ${BOOST_SOURCE}/libs/locale/src/boost/locale/posix/posix_backend.cpp
-  )
+    )
 else()
-  target_compile_definitions(boost_locale_deps INTERFACE BOOST_LOCALE_NO_POSIX_BACKEND=1)
+    target_compile_definitions(
+        boost_locale_deps
+        INTERFACE BOOST_LOCALE_NO_POSIX_BACKEND=1
+    )
 endif()
 
-if(USE_WINDOWS AND (BOOST_LOCALE_ENABLE_WINAPI_BACKEND OR BOOST_LOCALE_ENABLE_STD_BACKEND))
-  target_sources(locale PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/lcid.cpp)
+if(
+    USE_WINDOWS
+    AND (BOOST_LOCALE_ENABLE_WINAPI_BACKEND OR BOOST_LOCALE_ENABLE_STD_BACKEND)
+)
+    target_sources(
+        locale
+        PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/win32/lcid.cpp
+    )
 endif()
 
-if(BOOST_LOCALE_ENABLE_POSIX_BACKEND OR BOOST_LOCALE_ENABLE_STD_BACKEND OR BOOST_LOCALE_ENABLE_WINAPI_BACKEND)
-  target_sources(locale PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/util/gregorian.cpp)
+if(
+    BOOST_LOCALE_ENABLE_POSIX_BACKEND
+    OR BOOST_LOCALE_ENABLE_STD_BACKEND
+    OR BOOST_LOCALE_ENABLE_WINAPI_BACKEND
+)
+    target_sources(
+        locale
+        PRIVATE ${BOOST_SOURCE}/libs/locale/src/boost/locale/util/gregorian.cpp
+    )
 endif()
 
 _add_boost_test(

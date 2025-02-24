@@ -4,7 +4,7 @@ project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.1)
 
 if(PROJECT_IS_TOP_LEVEL)
     message(STATUS "PROJECT_IS_TOP_LEVEL")
-    option(BOOST_BUILD_ALL "Do build all targets" ON)
+    option(BOOST_BUILD_ALL "Do build all targets" OFF)
     option(BUILD_TESTING "Do build all tests" ON)
 endif()
 
@@ -14,13 +14,18 @@ option(
     ON
 )
 
-set(CMAKE_UNITY_BUILD ON)
+if(UNIX)
+    set(CMAKE_UNITY_BUILD ON)
+endif()
+
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
 
 if(CMAKE_SKIP_INSTALL_RULES)
     set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY ON)
     set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+else()
+    set(BOOST_SKIP_INSTALL_RULES OFF)
 endif()
 
 # NOTE: Use the FOLDER target property to organize targets into folders.
@@ -29,7 +34,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 # ensure that the debug and release builds use different names for the libraries that will be installed.
 set(CMAKE_DEBUG_POSTFIX -d)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(BOOST_LIBS_REQUIRED headers)

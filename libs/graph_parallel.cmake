@@ -1,5 +1,5 @@
 if(NOT TARGET mpi)
-  return()
+    return()
 endif()
 
 _add_boost_lib(

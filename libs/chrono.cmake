@@ -9,14 +9,11 @@ _add_boost_lib(
     BOOST_SYSTEM_NO_DEPRECATED
 )
 if(NOT USE_WINDOWS)
-  find_package(Threads)
-  target_link_libraries(chrono PRIVATE Threads::Threads)
+    find_package(Threads)
+    target_link_libraries(chrono PRIVATE Threads::Threads)
 
-  find_library(RT_LIBRARY
-    NAMES rt
-    DOC "rt library"
-  )
-  if(RT_LIBRARY)
-    target_link_libraries(chrono PUBLIC ${RT_LIBRARY})
-  endif()
+    find_library(RT_LIBRARY NAMES rt DOC "rt library")
+    if(RT_LIBRARY)
+        target_link_libraries(chrono PUBLIC ${RT_LIBRARY})
+    endif()
 endif()

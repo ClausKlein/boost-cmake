@@ -4,12 +4,7 @@ _add_boost_lib(
 )
 
 file(GLOB_RECURSE BOOST_JSON_TESTS_FILES ${BOOST_SOURCE}/libs/json/test/*.cpp)
-list(FILTER
-     BOOST_JSON_TESTS_FILES
-     EXCLUDE
-     REGEX
-     .*/cmake_install_test/.*$
-)
+list(FILTER BOOST_JSON_TESTS_FILES EXCLUDE REGEX .*/cmake_install_test/.*$)
 message(TRACE "RUN ${BOOST_JSON_TESTS_FILES}")
 
 _add_boost_test(

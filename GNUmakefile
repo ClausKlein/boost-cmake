@@ -1,4 +1,11 @@
-.PHONY: all fresh configure build test install format
+# Standard stuff
+
+.SUFFIXES:
+
+MAKEFLAGS+= --no-builtin-rules
+MAKEFLAGS+= --warn-undefined-variables
+
+.PHONY: all fresh configure build test install format clean distclean
 all: build
 
 fresh:
@@ -13,12 +20,17 @@ build: configure
 test: build
 	ctest --build --preset Release
 
-install: test
+install: # test
 	cmake --build --preset Release --target install
 
+clean:
+	-cmake --build --preset Release --target clean
+
+distclean: clean
+	rm -rf build stagedir
+
+
 format:
-	git clang-format
-	find . \( -type d -name build -o -name stagedir \) -prune -o \( -name '*.cmake' -o -name CMakeLists.txt \) -print > .cmakefiles.log
-	#NO! cmake-format -i `cat .cmakefiles.log`
-	ls -1 *.json >> .cmakefiles.log
-	cmake-format -i CMakeLists.txt cmake/*.cmake cmake/*/*.cmake
+	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i
+	git ls-files ::*.json | xargs clang-format -i
+	git clang-format master

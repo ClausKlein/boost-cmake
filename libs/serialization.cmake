@@ -1,16 +1,14 @@
-
-
 if(USE_WINDOWS)
-  set(SERIALIZATION_WIN_SRCS
-    ${BOOST_SOURCE}/libs/serialization/src/basic_text_wiprimitive.cpp
-    ${BOOST_SOURCE}/libs/serialization/src/basic_text_woprimitive.cpp
-    ${BOOST_SOURCE}/libs/serialization/src/text_wiarchive.cpp
-    ${BOOST_SOURCE}/libs/serialization/src/text_woarchive.cpp
-    ${BOOST_SOURCE}/libs/serialization/src/xml_wgrammar.cpp
-    ${BOOST_SOURCE}/libs/serialization/src/xml_wiarchive.cpp
-    ${BOOST_SOURCE}/libs/serialization/src/xml_woarchive.cpp
-  )
-  set(CXXFLAGS "/Gy")
+    set(SERIALIZATION_WIN_SRCS
+        ${BOOST_SOURCE}/libs/serialization/src/basic_text_wiprimitive.cpp
+        ${BOOST_SOURCE}/libs/serialization/src/basic_text_woprimitive.cpp
+        ${BOOST_SOURCE}/libs/serialization/src/text_wiarchive.cpp
+        ${BOOST_SOURCE}/libs/serialization/src/text_woarchive.cpp
+        ${BOOST_SOURCE}/libs/serialization/src/xml_wgrammar.cpp
+        ${BOOST_SOURCE}/libs/serialization/src/xml_wiarchive.cpp
+        ${BOOST_SOURCE}/libs/serialization/src/xml_woarchive.cpp
+    )
+    set(CXXFLAGS "/Gy")
 endif()
 
 _add_boost_lib(
