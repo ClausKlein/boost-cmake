@@ -86,7 +86,7 @@ class const_string {
     const_string& assign(char const* f, char const* l) { return *this = const_string(f, l); }
 
     void swap(const_string& s) {
-        // do not want to include alogrithm
+        // do not want to include algorithm
         char const* tmp1 = m_begin;
         char const* tmp2 = m_end;
 
