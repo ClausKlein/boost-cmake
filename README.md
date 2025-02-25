@@ -34,20 +34,22 @@ target_link_libraries(lib_using_header_only PUBLIC Boost::headers)
 
 ## Configuration
 
-Boost will automatically be downloaded from https://archive.boost.io/release !
+Boost will automatically be downloaded from https://github.com/boostorg/boost/releases
 
 If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
-set(BOOST_URL http://internal.mirror/boost_1_87_0.tar.bz2)
-set(BOOST_URL_SHA256 af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89)
+set(BOOST_URL http://internal.mirror/boost-1.87.0-cmake.tar.gz)
+set(BOOST_URL_SHA256 78fbf579e3caf0f47517d3fb4d9301852c3154bfecdc5eeebd9b2b0292366f5b)
 ```
 
-If you have Boost sources already available and want to point to them, you can use the following:
+If you have boost-cmake and Boost cmake sources files already available and want to point to them, you can use the following:
 ```
 set(FETCHCONTENT_SOURCE_DIR_BOOST /path/to/boost)
 add_subdirectory(boost-cmake)
 ```
+
+See too https://github.com/boostorg/cmake/tree/7f5336b3bf8067bb40da4e8b9940c133271e938a?tab=readme-ov-file#readme
 
 For more advanced configuration, you may want to install your project depending on boost libraries
 using [PackageProject](https://github.com/TheLartians/PackageProject.cmake) i.e.:
@@ -66,7 +68,7 @@ packageProject(
   INCLUDE_HEADER_PATTERN "*.h"
   DISABLE_VERSION_SUFFIX YES
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "Boost 1.84"
+  DEPENDENCIES "Boost 1.87"
 )
 
 include(CPack)
