@@ -64,6 +64,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         regex
         system
         thread
+        test
     )
 endif()
 
@@ -77,7 +78,6 @@ set(BOOST_LIBS_OPTIONAL
     json
     math
     random
-    test
     type_erasure
     CACHE STRING
     "Boost libs to be compiled"
@@ -141,103 +141,15 @@ if(NOT Boost_POPULATED)
     FetchContent_MakeAvailable(Boost)
     message(STATUS "Fetching Boost - done")
     set(BOOST_SOURCE ${boost_SOURCE_DIR})
-
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
-        find_package(Patch)
-        if(Patch_FOUND)
-            message("Patch found: ${Patch_EXECUTABLE}")
-            message("Patching Boost")
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/archive-01.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -p1 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/archive-01.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}/boost/archive
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/thread_future-01.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -p1 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/thread_future-01.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}/boost
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/serialization-01.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -p1 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/serialization-01.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}/libs/serialization
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/filesystem-01.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -p1 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/filesystem-01.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}/libs/filesystem
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-01.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -p2 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-01.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-02.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -R -p1 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/date_time-02.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}/libs/date_time
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            message("Patching Boost - done")
-        endif()
-    endif()
 endif()
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
-
-# FIXME: include(CheckBoostVersion)
+include(cmake/CheckBoostVersion.cmake)
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
 
-include(ccache)
-
-# include(StandaloneBuild)
-# include(PlatformDetect)
-# include(AddBoostLib)
-# include(AddBoostTest)
+include(cmake/ccache.cmake)
 
 configure_file(
-    cmake/Modules/ccache.cmake
+    cmake/ccache.cmake
     ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake
     COPYONLY
 )
@@ -255,24 +167,9 @@ target_compile_definitions(
     #XXX BOOST_THREAD_PROVIDES_EXECUTORS
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
-# target_compile_definitions(boost_headers INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS)
-# add_library(Boost::boost ALIAS boost_headers)
 #############################################################
 
-# if(UNIX AND BOOST_STANDALONE)
-#   # TODO(CK): too many deprecated warnings!
-#   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#     target_compile_options(boost INTERFACE -Wno-deprecated-copy)
-#   endif()
-#   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 19.0)
-#     target_compile_options(
-#       boost INTERFACE -Wno-deprecated-copy-dtor -Wno-newline-eof -Wno-deprecated-copy-with-user-provided-copy
-#     )
-#   endif()
-#   if(USE_APPLE)
-#     target_compile_options(boost INTERFACE -Wno-deprecated-declarations)
-#   endif()
-# endif()
+add_subdirectory(examples)
 
 # ---- Install rules ----
 
@@ -280,5 +177,7 @@ if(CMAKE_SKIP_INSTALL_RULES)
     return()
 endif()
 
-include(AddUninstallTarget)
 include(CPack)
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(AddUninstallTarget)
