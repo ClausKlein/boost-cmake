@@ -10,7 +10,7 @@ endif()
 
 option(
     BUILD_SHARED_LIBS
-    "A standard CMake variable that determines whether to build shared or static libraries. Defaults to OFF"
+    "A standard CMake variable that determines whether to build shared or static libraries. Defaults to ON"
     ON
 )
 
@@ -112,7 +112,7 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.87.0.1)
+set(BOOST_VERSION 1.87.0)
 set(BOOST_URL
     "https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z"
     CACHE STRING
