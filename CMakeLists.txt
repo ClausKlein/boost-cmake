@@ -1,20 +1,20 @@
-cmake_minimum_required(VERSION 3.28...4.0)
+cmake_minimum_required(VERSION 3.27...3.31)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.2)
+project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.3)
 
 if(PROJECT_IS_TOP_LEVEL)
-    message(STATUS "PROJECT_IS_TOP_LEVEL")
     option(BOOST_BUILD_ALL "Do build all targets" OFF)
     option(BUILD_TESTING "Do build all tests" ON)
 endif()
 
 option(
     BUILD_SHARED_LIBS
-    "A standard CMake variable that determines whether to build shared or static libraries. Defaults to OFF"
+    "A standard CMake variable that determines whether to build shared or static libraries. Defaults to ON"
     ON
 )
 
 if(UNIX)
+    message(STATUS "Use CMAKE_UNITY_BUILD")
     set(CMAKE_UNITY_BUILD ON)
 endif()
 
@@ -25,6 +25,7 @@ if(CMAKE_SKIP_INSTALL_RULES)
     set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY ON)
     set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
 else()
+    set(EXCLUDE_FROM_ALL)
     set(BOOST_SKIP_INSTALL_RULES OFF)
 endif()
 
@@ -155,21 +156,21 @@ configure_file(
 )
 
 #############################################################
-# TODO(CK): Move this to libs/header.cmake in the right file
 find_package(Threads)
 
 # Compilation options required by all platforms
 target_compile_definitions(
     boost_headers
     INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT> BOOST_ASIO_NO_DEPRECATED
-    #XXX BOOST_THREAD_VERSION=5
-    #XXX BOOST_THREAD_USES_CHRONO
-    #XXX BOOST_THREAD_PROVIDES_EXECUTORS
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
 #############################################################
 
-add_subdirectory(examples)
+# ---- usage example and test ----
+
+if(PROJECT_IS_TOP_LEVEL)
+    add_subdirectory(examples)
+endif()
 
 # ---- Install rules ----
 
