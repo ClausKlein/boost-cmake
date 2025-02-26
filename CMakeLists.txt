@@ -25,6 +25,7 @@ if(CMAKE_SKIP_INSTALL_RULES)
     set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY ON)
     set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
 else()
+    set(EXCLUDE_FROM_ALL)
     set(BOOST_SKIP_INSTALL_RULES OFF)
 endif()
 
@@ -98,7 +99,7 @@ enable_testing()
 
 set(BOOST_SUBDIR boost_1_87_0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
-    set(FETCHCONTENT_SOURCE_DIR_BOOST
+    set(FETCHCONTENT_SOURCE_DIR_true
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
         CACHE PATH
         "Boost source DIR"
@@ -156,16 +157,12 @@ configure_file(
 )
 
 #############################################################
-# TODO(CK): Move this to libs/header.cmake in the right file
 find_package(Threads)
 
 # Compilation options required by all platforms
 target_compile_definitions(
     boost_headers
     INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT> BOOST_ASIO_NO_DEPRECATED
-    #XXX BOOST_THREAD_VERSION=5
-    #XXX BOOST_THREAD_USES_CHRONO
-    #XXX BOOST_THREAD_PROVIDES_EXECUTORS
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
 #############################################################

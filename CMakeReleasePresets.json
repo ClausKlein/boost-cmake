@@ -38,7 +38,7 @@
       },
       "warnings": {
         "deprecated": true,
-        "uninitialized": false
+        "uninitialized": true
       },
       "trace": {
         "mode": "off"
