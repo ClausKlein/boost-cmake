@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.28...4.0)
+cmake_minimum_required(VERSION 3.27...3.31)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.1)
+project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.2)
 
 if(PROJECT_IS_TOP_LEVEL)
-    message(STATUS "PROJECT_IS_TOP_LEVEL")
     option(BOOST_BUILD_ALL "Do build all targets" OFF)
     option(BUILD_TESTING "Do build all tests" ON)
 endif()
@@ -15,6 +14,7 @@ option(
 )
 
 if(UNIX)
+    message(STATUS "Use CMAKE_UNITY_BUILD")
     set(CMAKE_UNITY_BUILD ON)
 endif()
 
@@ -99,7 +99,7 @@ enable_testing()
 
 set(BOOST_SUBDIR boost_1_87_0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
-    set(FETCHCONTENT_SOURCE_DIR_true
+    set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
         CACHE PATH
         "Boost source DIR"

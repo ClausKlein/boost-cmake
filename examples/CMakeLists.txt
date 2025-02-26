@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28...4.0)
+cmake_minimum_required(VERSION 3.27...3.31)
 
 project(BoostExamples LANGUAGES CXX)
 
@@ -26,7 +26,7 @@ if(PROJECT_IS_TOP_LEVEL)
         list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
         cpmaddpackage(
           NAME Boost-CMake
-          GIT_TAG v1.87.0-rc1
+          GIT_TAG v1.87.0-rc2
           GITHUB_REPOSITORY "ClausKlein/boost-cmake"
         )
     endif()
@@ -35,17 +35,17 @@ endif()
 # ---- Create test binaries ----
 
 add_executable(ExampleAsio deferred.cpp)
-target_compile_features(ExampleAsio PRIVATE cxx_std_17)
+# XXX target_compile_features(ExampleAsio PRIVATE cxx_std_17)
 
 add_executable(ExampleRegex regex.cpp)
-target_compile_features(ExampleRegex PRIVATE cxx_std_17)
+# XXX target_compile_features(ExampleRegex PRIVATE cxx_std_17)
 
 target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 target_link_libraries(ExampleRegex PRIVATE Boost::regex)
 
-if(Boost_FOUND)
+if(Boost_FOUND OR TARGET Boost::unit_test_framework)
     add_executable(ExampleTest const_string_test.cpp)
-    target_compile_features(ExampleTest PRIVATE cxx_std_17)
+    # XXX target_compile_features(ExampleTest PRIVATE cxx_std_17)
     target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
     add_test(NAME ExampleTest COMMAND ExampleTest)
 endif()

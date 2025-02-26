@@ -20,7 +20,7 @@
         },
         "BOOST_DISABLE_TESTS": false,
         "BOOST_STANDALONE": true,
-        "BUILD_SHARED_LIBS": false,
+        "BUILD_SHARED_LIBS": true,
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_EXTENSIONS": false,
         "CMAKE_CXX_STANDARD": "17",
@@ -29,7 +29,7 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CMAKE_INSTALL_MESSAGE": "LAZY",
         "CMAKE_SKIP_INSTALL_RULES": false,
-        "CMAKE_UNITY_BUILD": false
+        "CMAKE_UNITY_BUILD": true
       },
       "environment": {
         "CPM_USE_LOCAL_PACKAGES": "NO",
