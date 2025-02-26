@@ -3,9 +3,12 @@ name: CMake
 
 on:
   push:
-    branches: ["develop"]
   pull_request:
     branches: ["develop"]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  schedule:
+    - cron: '30 15 * * *'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -23,20 +26,25 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Setup build environment
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.27.0"
+          ninjaVersion: "^1.11.1"
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/stage
+        run: cmake --preset ${{env.BUILD_TYPE}}
 
       - name: Build
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        run: cmake --build --preset ${{env.BUILD_TYPE}}
 
       - name: Install
         # Install the project artefacts to CMAKE_INSTALL_PREFIX
-        run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        run: cmake --install ${{github.workspace}}/build/${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
 
       - name: Test
-        working-directory: ${{github.workspace}}/build
+        working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
         # Execute tests defined by the CMake configuration, but needs to find_package(Boost)!
         run: ctest -C ${{env.BUILD_TYPE}}
