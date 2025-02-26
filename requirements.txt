@@ -1,0 +1,26 @@
+# =============================================================================
+# PYTHON PACKAGES (PIP)
+# =============================================================================
+# USE (python3): pip3 install -U -r requirements.txt
+# =============================================================================
+
+### python tools
+isort
+black
+builddriver
+gersemi
+pip-tools
+pylint
+pyaml
+pre-commit
+
+### cmake build context
+bump2version>=1.0.1
+check-jsonschema>=0.31.2
+cmake-format>=0.6.13
+cmake>=3.30
+codespell>=2.4.1
+conan>=2.13.0
+gcovr>=8.3
+ninja>=1.11
+yamllint>=1.35
