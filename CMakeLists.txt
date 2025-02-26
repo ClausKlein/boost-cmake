@@ -130,7 +130,8 @@ FetchContent_Declare(
     Boost
     URL ${BOOST_URL}
     URL_HASH SHA256=${BOOST_URL_SHA256}
-    DOWNLOAD_EXTRACT_TIMESTAMP ON
+    DOWNLOAD_EXTRACT_TIMESTAMP
+    ON
     ${EXCLUDE_FROM_ALL}
     SYSTEM
 )
@@ -169,7 +170,11 @@ target_compile_definitions(
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
 #############################################################
 
-add_subdirectory(examples)
+# ---- usage example and test ----
+
+if(PROJECT_IS_TOP_LEVEL)
+    add_subdirectory(examples)
+endif()
 
 # ---- Install rules ----
 

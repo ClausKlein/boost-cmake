@@ -15,17 +15,18 @@
 using boost::asio::deferred;
 
 int main() {
-    boost::asio::io_context ctx;
+  boost::asio::io_context ctx;
 
-    boost::asio::steady_timer timer(ctx);
-    timer.expires_after(std::chrono::seconds(1));
+  boost::asio::steady_timer timer(ctx);
+  timer.expires_after(std::chrono::seconds(1));
 
-    auto deferred_op = timer.async_wait(deferred);
+  auto deferred_op = timer.async_wait(deferred);
 
-    std::move(deferred_op)(
-        [](boost::system::error_code ec) { std::cout << "timer wait finished: " << ec.message() << "\n"; });
+  std::move(deferred_op)([](boost::system::error_code ec) {
+    std::cout << "timer wait finished: " << ec.message() << "\n";
+  });
 
-    ctx.run();
+  ctx.run();
 
-    return 0;
+  return 0;
 }

@@ -18,9 +18,9 @@ build: configure
 	cmake --build --preset Release
 
 test: build
-	ctest --build --preset Release
+	ctest --preset Release
 
-install: # test
+install: test
 	cmake --build --preset Release --target install
 
 clean:
@@ -29,8 +29,7 @@ clean:
 distclean: clean
 	rm -rf build stagedir
 
-
 format:
 	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i
-	git ls-files ::*.json | xargs clang-format -i
-	git clang-format master
+	git ls-files ::*.json ::*.cpp ::*.hpp | xargs clang-format -i
+	# git clang-format master

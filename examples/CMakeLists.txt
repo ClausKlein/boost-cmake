@@ -2,7 +2,37 @@ cmake_minimum_required(VERSION 3.28...3.31)
 
 project(BoostExamples)
 
-# ---- Create binary ----
+enable_testing()
+
+
+# ---- Dependencies ----
+
+if(PROJECT_IS_TOP_LEVEL)
+    set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
+    if(NOT DEFINED CMAKE_PREFIX_PATH)
+        list(APPEND CMAKE_PREFIX_PATH ../stagedir)
+    endif()
+    include(../cmake/ccache.cmake)
+
+    set(BOOST_DEBUG YES)
+    set(BOOST_VERBOSE YES)
+    find_package(Boost 1.87 COMPONENTS asio regex unit_test_framework)
+    if(NOT Boost_FOUND)
+        set(CPM_USE_LOCAL_PACKAGES YES)
+        include(../cmake/CPM.cmake)
+
+        list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
+        cpmaddpackage(
+          NAME Boost-CMake
+          VERSION 1.87.0
+          GIT_TAG feature/bump-to-boost-v1.87.0
+          # TODO: v1.87.0-rc1
+          GITHUB_REPOSITORY "ClausKlein/boost-cmake"
+        )
+    endif()
+endif()
+
+# ---- Create test binaries ----
 
 add_executable(ExampleAsio deferred.cpp)
 target_compile_features(ExampleAsio PRIVATE cxx_std_17)
@@ -10,35 +40,35 @@ target_compile_features(ExampleAsio PRIVATE cxx_std_17)
 add_executable(ExampleRegex regex.cpp)
 target_compile_features(ExampleRegex PRIVATE cxx_std_17)
 
-# XXX add_executable(ExampleTest const_string_test.cpp)
-# XXX target_compile_features(ExampleTest PRIVATE cxx_std_17)
-
-# ---- Dependencies ----
-
-option(TEST_INSTALLED_VERSION "Test installed version" ${PROJECT_IS_TOP_LEVEL})
-if(TEST_INSTALLED_VERSION)
-    set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
-    set(CPM_USE_LOCAL_PACKAGES YES)
-    include(../cmake/CPM.cmake)
-
-    list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
-    cpmaddpackage(
-      NAME Boost
-      VERSION 1.87.0
-      GIT_TAG feature/bump-to-boost-v1.87.0
-      # TODO: v1.87.0-rc1
-      GITHUB_REPOSITORY "ClausKlein/boost-cmake"
-    )
-endif()
-
 target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 target_link_libraries(ExampleRegex PRIVATE Boost::regex)
-# XXX target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
+
+if(Boost_FOUND)
+    add_executable(ExampleTest const_string_test.cpp)
+    target_compile_features(ExampleTest PRIVATE cxx_std_17)
+    target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
+    add_test(NAME ExampleTest COMMAND ExampleTest)
+endif()
 
 # ---- Testing ----
 
-enable_testing()
-
 add_test(NAME ExampleAsio COMMAND ExampleAsio)
 add_test(NAME ExampleRegex COMMAND ExampleRegex)
-# XXX add_test(NAME ExampleTest COMMAND ExampleTest)
+
+# test if the targets are findable from the build directory
+if(NOT PROJECT_IS_TOP_LEVEL)
+    add_test(
+        NAME find-package-test
+        COMMAND
+            ${CMAKE_CTEST_COMMAND}
+            # --verbose
+            --output-on-failure -C $<CONFIG> --build-and-test
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" --build-generator
+            ${CMAKE_GENERATOR} --build-makeprogram ${CMAKE_MAKE_PROGRAM}
+            --build-options "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
+            "-DCMAKE_BUILD_TYPE=$<CONFIG>"
+            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+    )
+endif()
