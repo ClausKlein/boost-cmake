@@ -9,7 +9,6 @@
 //
 
 #include <boost/asio.hpp>
-
 #include <iostream>
 
 using boost::asio::deferred;

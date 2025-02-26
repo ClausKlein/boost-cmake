@@ -1,5 +1,4 @@
 #include <boost/regex.hpp>
-
 #include <iostream>
 #include <iterator>
 #include <string>
@@ -7,9 +6,10 @@
 int main() {
   using namespace boost;
 
-  std::string s = "Some people, when confronted with a problem, think "
-                  "\"I know, I'll use regular expressions.\" "
-                  "Now they have two problems.";
+  std::string s
+      = "Some people, when confronted with a problem, think "
+        "\"I know, I'll use regular expressions.\" "
+        "Now they have two problems.";
 
   regex self_regex("REGULAR EXPRESSIONS", regex_constants::icase);
   if (regex_search(s, self_regex)) {
@@ -42,12 +42,10 @@ int main() {
     regex vowel_re("a|e|i|o|u");
 
     // write the results to an output iterator
-    regex_replace(std::ostreambuf_iterator<char>(std::cout), text.begin(),
-                  text.end(), vowel_re, std::string("'*'"));
+    regex_replace(std::ostreambuf_iterator<char>(std::cout), text.begin(), text.end(), vowel_re, std::string("'*'"));
 
     // construct a string holding the results
-    std::cout << '\n'
-              << regex_replace(text, vowel_re, std::string("[$&]")) << '\n';
+    std::cout << '\n' << regex_replace(text, vowel_re, std::string("[$&]")) << '\n';
   }
 
   return 0;
