@@ -28,8 +28,7 @@
         "CMAKE_DEBUG_POSTFIX": "-d",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CMAKE_INSTALL_MESSAGE": "LAZY",
-        "CMAKE_SKIP_INSTALL_RULES": false,
-        "CMAKE_UNITY_BUILD": true
+        "CMAKE_SKIP_INSTALL_RULES": false
       },
       "environment": {
         "CPM_USE_LOCAL_PACKAGES": "NO",

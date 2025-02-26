@@ -26,7 +26,7 @@ if(PROJECT_IS_TOP_LEVEL)
         list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
         cpmaddpackage(
           NAME Boost-CMake
-          GIT_TAG v1.87.0-rc2
+          GIT_TAG v1.87.0-rc3
           GITHUB_REPOSITORY "ClausKlein/boost-cmake"
         )
     endif()
