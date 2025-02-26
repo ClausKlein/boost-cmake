@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.28...3.31)
+cmake_minimum_required(VERSION 3.28...4.0)
 
-project(BoostExamples)
+project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
-
 
 # ---- Dependencies ----
 
@@ -24,9 +23,7 @@ if(PROJECT_IS_TOP_LEVEL)
         list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
         cpmaddpackage(
           NAME Boost-CMake
-          VERSION 1.87.0
-          GIT_TAG feature/bump-to-boost-v1.87.0
-          # TODO: v1.87.0-rc1
+          GIT_TAG v1.87.0-rc1
           GITHUB_REPOSITORY "ClausKlein/boost-cmake"
         )
     endif()

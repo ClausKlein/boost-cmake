@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28...4.0)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.2)
+project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.1)
 
 if(PROJECT_IS_TOP_LEVEL)
     message(STATUS "PROJECT_IS_TOP_LEVEL")
@@ -112,7 +112,7 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.87.0)
+set(BOOST_VERSION 1.87.0.1)
 set(BOOST_URL
     "https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z"
     CACHE STRING
