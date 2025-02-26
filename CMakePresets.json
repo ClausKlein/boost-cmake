@@ -41,12 +41,12 @@
           "name": "Release"
         },
         {
-          "type": "test",
-          "name": "Release"
-        },
-        {
           "type": "build",
           "name": "install"
+        },
+        {
+          "type": "test",
+          "name": "Release"
         },
         {
           "type": "package",
