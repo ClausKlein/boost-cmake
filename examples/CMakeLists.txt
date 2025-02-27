@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27...3.31)
+cmake_minimum_required(VERSION 3.27...4.0)
 
 project(BoostExamples LANGUAGES CXX)
 
@@ -18,18 +18,38 @@ if(PROJECT_IS_TOP_LEVEL)
 
     set(BOOST_DEBUG YES)
     set(BOOST_VERBOSE YES)
-    find_package(Boost 1.87 COMPONENTS asio regex unit_test_framework)
-    if(NOT Boost_FOUND)
-        set(CPM_USE_LOCAL_PACKAGES YES)
-        include(../cmake/CPM.cmake)
+    list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
 
-        list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
-        cpmaddpackage(
-          NAME Boost-CMake
-          GIT_TAG v1.87.0-rc5
-          GITHUB_REPOSITORY "ClausKlein/boost-cmake"
-        )
-    endif()
+    # TODO: use FETCHCONTENT with FIND_PACKAGE_ARGS!
+    # XXX find_package(Boost 1.87 COMPONENTS asio regex unit_test_framework)
+    # if(NOT Boost_FOUND)
+    #     cpmaddpackage(
+    #       NAME Boost-CMake
+    #       GIT_TAG v1.87.0-rc5
+    #       GITHUB_REPOSITORY "ClausKlein/boost-cmake"
+    #     )
+    # endif()
+
+    set(CPM_USE_LOCAL_PACKAGES YES)
+    include(../cmake/CPM.cmake)
+
+    set(CMAKE_SKIP_INSTALL_RULES ON)
+    set(CMAKE_INSTALL_MESSAGE LAZY)
+    set(CMAKE_UNITY_BUILD ON)
+
+    set(BOOST_VERSION 1.87.0)
+    set(BUILD_SHARED_LIBS ON)
+
+    cpmaddpackage(
+      NAME Boost
+      VERSION ${BOOST_VERSION}
+      URL https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.xz
+      URL_HASH SHA256=7da75f171837577a52bbf217e17f8ea576c7c246e4594d617bfde7fafd408be5
+      EXCLUDE_FROM_ALL ON
+      SYSTEM ON
+      OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES}"
+      FIND_PACKAGE_ARGUMENTS "COMPONENTS asio\\\;regex\\\;unit_test_framework"
+    )
 endif()
 
 # ---- Create test binaries ----
