@@ -9,7 +9,8 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   schedule:
-    - cron: '30 15 * * *'
+    # run at 15:30 on day-of-month 7.
+    - cron: '30 15 7 * *'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
