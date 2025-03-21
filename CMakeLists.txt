@@ -58,6 +58,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         ${BOOST_LIBS_REQUIRED}
         asio
         atomic
+        beast
         chrono
         exception
         filesystem
