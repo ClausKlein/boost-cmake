@@ -64,6 +64,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         filesystem
         program_options
         regex
+        signals2
         system
         thread
         test
