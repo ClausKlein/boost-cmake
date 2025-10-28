@@ -27,7 +27,7 @@ if(PROJECT_IS_TOP_LEVEL)
         # if(NOT Boost_FOUND)
         #     cpmaddpackage(
         #       NAME Boost-CMake
-        #       GIT_TAG v1.87.0-rc5
+        #       GIT_TAG v1.87.0-rc6
         #       GITHUB_REPOSITORY "ClausKlein/boost-cmake"
         #     )
         # endif()

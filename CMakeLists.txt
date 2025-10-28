@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25...4.4)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.5)
+project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.6)
 
 if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_BUILD_ALL "Do build all targets" OFF)
