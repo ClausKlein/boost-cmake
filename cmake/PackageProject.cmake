@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.25...4.4)
 
 set(PACKAGE_PROJECT_ROOT_PATH
     "${CMAKE_CURRENT_LIST_DIR}"
     CACHE INTERNAL
     "The path to the PackageProject directory"
 )
+
+# if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.31.0") cmake_policy(SET CMP0177 NEW) endif()
 
 function(packageProject)
     include(CMakePackageConfigHelpers)
@@ -13,8 +15,8 @@ function(packageProject)
     cmake_parse_arguments(
         PROJECT
         ""
-        "NAME;VERSION;INCLUDE_DIR;INCLUDE_DESTINATION;BINARY_DIR;COMPATIBILITY;EXPORT_HEADER;VERSION_HEADER;NAMESPACE;DISABLE_VERSION_SUFFIX;ARCH_INDEPENDENT;INCLUDE_HEADER_PATTERN;CPACK;INCLUDE_HEADER_REGEX"
-        "TARGETS;DEPENDENCIES"
+        "NAME;VERSION;INCLUDE_DIR;INCLUDE_DESTINATION;BINARY_DIR;COMPATIBILITY;EXPORT_HEADER;VERSION_HEADER;NAMESPACE;DISABLE_VERSION_SUFFIX;ARCH_INDEPENDENT;INCLUDE_HEADER_PATTERN;CPACK;RUNTIME_DESTINATION"
+        "DEPENDENCIES;HEADER_SETS"
         ${ARGN}
     )
 
@@ -25,10 +27,6 @@ function(packageProject)
         unset(PROJECT_VERSION_SUFFIX)
     else()
         set(PROJECT_VERSION_SUFFIX -${PROJECT_VERSION})
-    endif()
-
-    if(NOT PROJECT_TARGETS)
-        set(PROJECT_TARGETS ${PROJECT_NAME})
     endif()
 
     if(NOT DEFINED PROJECT_COMPATIBILITY)
@@ -42,14 +40,8 @@ function(packageProject)
         if(PROJECT_CPACK)
             set(CPACK_PACKAGE_NAMESPACE ${PROJECT_NAMESPACE})
         endif()
-
         set(PROJECT_NAMESPACE ${PROJECT_NAMESPACE}::)
-        foreach(PROJECT_TARGET IN LISTS PROJECT_TARGETS)
-            add_library(
-                ${PROJECT_NAMESPACE}${PROJECT_TARGET}
-                ALIAS ${PROJECT_TARGET}
-            )
-        endforeach()
+        add_library(${PROJECT_NAMESPACE}${PROJECT_NAME} ALIAS ${PROJECT_NAME})
     endif()
 
     if(DEFINED PROJECT_VERSION_HEADER OR DEFINED PROJECT_EXPORT_HEADER)
@@ -99,6 +91,14 @@ function(packageProject)
             endif()
 
             string(TOUPPER ${PROJECT_NAME} UPPERCASE_PROJECT_NAME)
+            # ensure that the generated macro does not include invalid characters
+            string(
+                REGEX REPLACE
+                [^a-zA-Z0-9]
+                _
+                UPPERCASE_PROJECT_NAME
+                ${UPPERCASE_PROJECT_NAME}
+            )
             configure_file(
                 ${PACKAGE_PROJECT_ROOT_PATH}/version.h.in
                 ${PROJECT_VERSION_INCLUDE_DIR}/${PROJECT_VERSION_HEADER}
@@ -106,20 +106,17 @@ function(packageProject)
             )
         endif()
 
-        foreach(PROJECT_TARGET IN LISTS PROJECT_TARGETS)
-            get_target_property(target_type ${PROJECT_TARGET} TYPE)
-            if(target_type STREQUAL "INTERFACE_LIBRARY")
-                set(VISIBILITY INTERFACE)
-            else()
-                set(VISIBILITY PUBLIC)
-            endif()
-            target_include_directories(
-                ${PROJECT_TARGET}
-                ${VISIBILITY}
-                "$<BUILD_INTERFACE:${PROJECT_VERSION_INCLUDE_DIR}>"
-            )
-        endforeach()
-
+        get_target_property(target_type ${PROJECT_NAME} TYPE)
+        if(target_type STREQUAL "INTERFACE_LIBRARY")
+            set(VISIBILITY INTERFACE)
+        else()
+            set(VISIBILITY PUBLIC)
+        endif()
+        target_include_directories(
+            ${PROJECT_NAME}
+            ${VISIBILITY}
+            "$<BUILD_INTERFACE:${PROJECT_VERSION_INCLUDE_DIR}>"
+        )
         install(
             DIRECTORY ${PROJECT_VERSION_INCLUDE_DIR}/
             DESTINATION ${PROJECT_INCLUDE_DESTINATION}
@@ -127,53 +124,67 @@ function(packageProject)
         )
     endif()
 
-    set(_wbpvf_extra_args "")
+    set(wbpvf_extra_args "")
     if(NOT DEFINED PROJECT_ARCH_INDEPENDENT)
         get_target_property(target_type "${PROJECT_NAME}" TYPE)
-        if(TYPE STREQUAL "INTERFACE_LIBRARY")
+        if(target_type STREQUAL "INTERFACE_LIBRARY")
             set(PROJECT_ARCH_INDEPENDENT YES)
         endif()
     endif()
 
     if(PROJECT_ARCH_INDEPENDENT)
-        set(_wbpvf_extra_args ARCH_INDEPENDENT)
+        set(wbpvf_extra_args ARCH_INDEPENDENT)
+        # install to architecture independent (share) directory
+        set(INSTALL_DIR_FOR_CMAKE_CONFIGS ${CMAKE_INSTALL_DATADIR})
+    else()
+        # if x32 or multilib->x32 , install to (lib) directory. if x64, install to (lib64) directory
+        set(INSTALL_DIR_FOR_CMAKE_CONFIGS ${CMAKE_INSTALL_LIBDIR})
     endif()
 
     write_basic_package_version_file(
         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
         VERSION ${PROJECT_VERSION}
         COMPATIBILITY ${PROJECT_COMPATIBILITY}
-        ${_wbpvf_extra_args}
+        ${wbpvf_extra_args}
     )
 
+    # set default runtime install subdirectory (RUNTIME_DESTINATION)
+    if(NOT DEFINED PROJECT_RUNTIME_DESTINATION)
+        set(PROJECT_RUNTIME_DESTINATION
+            ${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}
+        )
+    endif()
+
+    if(PROJECT_HEADER_SETS)
+        # required to install if use in project target since CMake 3.23
+        set(FILE_SET_ARGS "FILE_SET" "${PROJECT_HEADER_SETS}")
+    endif()
+
     install(
-        TARGETS ${PROJECT_TARGETS}
+        TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}Targets
         LIBRARY
-            DESTINATION
-                ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_RUNTIME_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Runtime"
             NAMELINK_COMPONENT "${PROJECT_NAME}_Development"
         ARCHIVE
-            DESTINATION
-                ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_RUNTIME_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Development"
         RUNTIME
-            DESTINATION
-                ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}
+            DESTINATION ${CMAKE_INSTALL_BINDIR}/${PROJECT_RUNTIME_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Runtime"
         BUNDLE
-            DESTINATION
-                ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}
+            DESTINATION ${CMAKE_INSTALL_BINDIR}/${PROJECT_RUNTIME_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Runtime"
         PUBLIC_HEADER
             DESTINATION ${PROJECT_INCLUDE_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Development"
+        ${FILE_SET_ARGS}
         INCLUDES DESTINATION "${PROJECT_INCLUDE_DESTINATION}"
     )
 
     set("${PROJECT_NAME}_INSTALL_CMAKEDIR"
-        "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}"
+        "${INSTALL_DIR_FOR_CMAKE_CONFIGS}/cmake/${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}"
         CACHE PATH
         "CMake package config location relative to the install prefix"
     )
@@ -201,25 +212,18 @@ function(packageProject)
         COMPONENT "${PROJECT_NAME}_Development"
     )
 
-    set(_include_header_option PATTERN)
-    if(PROJECT_INCLUDE_HEADER_REGEX)
-        set(_include_header_option REGEX)
-        set(PROJECT_INCLUDE_HEADER_PATTERN ${PROJECT_INCLUDE_HEADER_REGEX})
-    elseif(NOT DEFINED PROJECT_INCLUDE_HEADER_PATTERN)
+    if(NOT DEFINED PROJECT_INCLUDE_HEADER_PATTERN)
         set(PROJECT_INCLUDE_HEADER_PATTERN "*")
     endif()
 
     if(PROJECT_INCLUDE_DESTINATION AND PROJECT_INCLUDE_DIR)
-        # cmake-format: off
         install(
             DIRECTORY ${PROJECT_INCLUDE_DIR}/
             DESTINATION ${PROJECT_INCLUDE_DESTINATION}
             COMPONENT "${PROJECT_NAME}_Development"
             FILES_MATCHING
-            ${_include_header_option}
-            "${PROJECT_INCLUDE_HEADER_PATTERN}"
+            PATTERN "${PROJECT_INCLUDE_HEADER_PATTERN}"
         )
-        # cmake-format: on
     endif()
 
     set(${PROJECT_NAME}_VERSION ${PROJECT_VERSION} CACHE INTERNAL "")

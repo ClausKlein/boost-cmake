@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27...3.31)
+cmake_minimum_required(VERSION 3.25...4.4)
 
 project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.5)
 
