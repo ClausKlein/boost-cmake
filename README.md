@@ -21,7 +21,7 @@ include(cmake/CPM.cmake)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
 set(BOOST_INCLUDE_LIBRARIES filesystem headers)
-CPMAddPackage("gh:ClausKlein/boost-cmake#v1.87.0-rc6")
+CPMAddPackage("gh:ClausKlein/boost-cmake#v1.90.1-dev1")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

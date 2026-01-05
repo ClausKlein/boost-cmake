@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.25...4.4)
+cmake_minimum_required(VERSION 3.25...4.2)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.6)
+project(Boost-CMake LANGUAGES CXX VERSION 1.90.1.1)
 
 if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_BUILD_ALL "Do build all targets" OFF)
@@ -99,7 +99,7 @@ enable_testing()
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-set(BOOST_SUBDIR boost_1_87_0)
+set(BOOST_SUBDIR boost_1_90_0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
@@ -115,14 +115,14 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.87.0)
+set(BOOST_VERSION 1.90.0)
 set(BOOST_URL
     "https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z"
     CACHE STRING
     "Boost download URL"
 )
 set(BOOST_URL_SHA256
-    "61d61a3f33283bab8f3736745a4e47c37141f07e413986cd05d1f942c69d529a"
+    "218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921"
     CACHE STRING
     "Boost download URL SHA256 checksum"
 )
