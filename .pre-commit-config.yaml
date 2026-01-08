@@ -21,12 +21,12 @@ repos:
         types_or: [c++, c, json]
         exclude: docs/TODO.json
 
-  # TODO: CMake linting and formatting
-  # - repo: https://github.com/BlankSpruce/gersemi
-  #   rev: 0.17.1
-  #   hooks:
-  #     - id: gersemi
-  #       name: CMake linting
+  # CMake linting and formatting
+  - repo: https://github.com/BlankSpruce/gersemi
+    rev: 0.25.0
+    hooks:
+      - id: gersemi
+        name: CMake linting
 
   # TODO: Markdown linting
   # Config file: .markdownlint.yaml

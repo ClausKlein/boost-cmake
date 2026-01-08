@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27...4.0)
+cmake_minimum_required(VERSION 3.30...4.2)
 
 project(BoostExamples LANGUAGES CXX)
 
@@ -9,7 +9,7 @@ enable_testing()
 if(PROJECT_IS_TOP_LEVEL)
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
     if(NOT DEFINED CMAKE_CXX_STANDARD)
-        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_STANDARD 20)
     endif()
     if(NOT DEFINED CMAKE_PREFIX_PATH)
         list(APPEND CMAKE_PREFIX_PATH ../stagedir)
@@ -23,11 +23,11 @@ if(PROJECT_IS_TOP_LEVEL)
 
         # set(CPM_USE_LOCAL_PACKAGES YES)
         # include(../cmake/CPM.cmake)
-        # find_package(Boost 1.87 COMPONENTS asio regex unit_test_framework)
+        # find_package(Boost 1.90 COMPONENTS asio regex unit_test_framework)
         # if(NOT Boost_FOUND)
         #     cpmaddpackage(
         #       NAME Boost-CMake
-        #       GIT_TAG v1.90.1-dev1
+        #       GIT_TAG v1.90.0-dev1
         #       GITHUB_REPOSITORY "ClausKlein/boost-cmake"
         #     )
         # endif()
@@ -39,7 +39,7 @@ if(PROJECT_IS_TOP_LEVEL)
         set(BOOST_ENABLE_CMAKE ON)
         set(BUILD_SHARED_LIBS ON)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
-        set(BOOST_VERSION 1.87.0)
+        set(BOOST_VERSION 1.90.0)
 
         include(FetchContent)
         FetchContent_Declare(
@@ -47,7 +47,7 @@ if(PROJECT_IS_TOP_LEVEL)
             URL
                 https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.xz
             URL_HASH
-                SHA256=7da75f171837577a52bbf217e17f8ea576c7c246e4594d617bfde7fafd408be5
+                SHA256=218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
@@ -64,17 +64,17 @@ endif()
 # ---- Create test binaries ----
 
 add_executable(ExampleAsio deferred.cpp)
-# XXX target_compile_features(ExampleAsio PRIVATE cxx_std_17)
+# XXX target_compile_features(ExampleAsio PRIVATE cxx_std_20)
 
 add_executable(ExampleRegex regex.cpp)
-# XXX target_compile_features(ExampleRegex PRIVATE cxx_std_17)
+# XXX target_compile_features(ExampleRegex PRIVATE cxx_std_20)
 
 target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 target_link_libraries(ExampleRegex PRIVATE Boost::regex)
 
 if(TARGET Boost::unit_test_framework)
     add_executable(ExampleTest const_string_test.cpp)
-    # XXX target_compile_features(ExampleTest PRIVATE cxx_std_17)
+    # XXX target_compile_features(ExampleTest PRIVATE cxx_std_20)
     target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
     add_test(NAME ExampleTest COMMAND ExampleTest)
 endif()

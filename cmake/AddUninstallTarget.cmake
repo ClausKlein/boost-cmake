@@ -48,8 +48,7 @@ endif()
 set(_filename cmake_uninstall.cmake)
 
 file(
-    WRITE
-    "${CMAKE_CURRENT_BINARY_DIR}/${_filename}"
+    WRITE "${CMAKE_CURRENT_BINARY_DIR}/${_filename}"
     "if(NOT EXISTS \"${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\")
   message(WARNING \"Cannot find install manifest: \\\"${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt\\\"\")
   return()
