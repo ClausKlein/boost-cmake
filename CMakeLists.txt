@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.30...4.2)
 project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.1)
 
 if(PROJECT_IS_TOP_LEVEL)
-    option(BOOST_BUILD_ALL "Do build all boost libs" ON)
     option(BUILD_TESTING "Build the tests." OFF)
     if(UNIX)
+        option(BOOST_BUILD_ALL "Do build all boost libs" ON)
         option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" ON)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
         set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!

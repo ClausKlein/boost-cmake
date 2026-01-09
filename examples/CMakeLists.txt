@@ -7,6 +7,8 @@ enable_testing()
 # ---- Dependencies ----
 
 if(PROJECT_IS_TOP_LEVEL)
+    include(../cmake/ccache.cmake)
+
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
     if(NOT DEFINED CMAKE_CXX_STANDARD)
         set(CMAKE_CXX_STANDARD 20)
@@ -14,7 +16,9 @@ if(PROJECT_IS_TOP_LEVEL)
     if(NOT DEFINED CMAKE_PREFIX_PATH)
         list(APPEND CMAKE_PREFIX_PATH ../stagedir)
     endif()
-    include(../cmake/ccache.cmake)
+    if(NOT DEFINED BOOST_USE_MODULES)
+        set(BOOST_USE_MODULES ON)
+    endif()
 
     block()
         set(BOOST_DEBUG YES)
@@ -24,7 +28,6 @@ if(PROJECT_IS_TOP_LEVEL)
         set(CMAKE_SKIP_INSTALL_RULES ON)
         set(CMAKE_UNITY_BUILD ON)
 
-        # XXX set(BOOST_ENABLE_CMAKE ON)
         set(BUILD_SHARED_LIBS ON)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
         set(BOOST_VERSION 1.90.0)
@@ -52,8 +55,11 @@ endif()
 
 # ---- Create test binaries ----
 
-add_executable(ExampleAny any_usage_sample.cpp)
-target_link_libraries(ExampleAny PRIVATE Boost::any)
+if(BOOST_USE_MODULES)
+    add_executable(ExampleAny any_usage_sample.cpp)
+    target_link_libraries(ExampleAny PRIVATE Boost::any)
+    add_test(NAME ExampleAny COMMAND ExampleAny)
+endif()
 
 add_executable(ExampleAsio deferred.cpp)
 target_link_libraries(ExampleAsio PRIVATE Boost::asio)
@@ -69,7 +75,6 @@ endif()
 
 # ---- Testing ----
 
-add_test(NAME ExampleAny COMMAND ExampleAny)
 add_test(NAME ExampleAsio COMMAND ExampleAsio)
 add_test(NAME ExampleRegex COMMAND ExampleRegex)
 
@@ -88,5 +93,6 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
             "-DCMAKE_BUILD_TYPE=$<CONFIG>"
             "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DBOOST_USE_MODULES=${BOOST_USE_MODULES}"
     )
 endif()
