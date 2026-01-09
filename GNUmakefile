@@ -32,17 +32,20 @@ else ifeq (${hostSystemName},Linux)
 endif
 
 #####################################################################
-.PHONY: all fresh configure build test install format clean distclean
+.PHONY: all fresh build test install format clean distclean
+
+all: test
 
 fresh:
 	cmake --workflow --preset Release --fresh
 
-all: test
+compile_commands.json: build/Release/compile_commands.json
+	ln -sf $< .
 
-configure:
-	cmake --preset Release
+build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
+	cmake --preset Release --log-level=VERBOSE
 
-build: configure
+build: compile_commands.json
 	cmake --build --preset Release
 
 test: install
@@ -53,8 +56,9 @@ install: build
 
 clean:
 	-cmake --build --preset Release --target clean
+	-find . -name '*~' -delete
 
-distclean: clean
+distclean: # XXX clean
 	rm -rf build stagedir
 
 format:

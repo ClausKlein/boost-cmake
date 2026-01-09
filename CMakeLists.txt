@@ -3,11 +3,12 @@ cmake_minimum_required(VERSION 3.30...4.2)
 project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.1)
 
 if(PROJECT_IS_TOP_LEVEL)
-    option(BOOST_BUILD_ALL "Do build all targets" OFF)
+    option(BOOST_BUILD_ALL "Do build all boost libs" ON)
     option(BUILD_TESTING "Build the tests." OFF)
-    option(BOOST_USE_MODULES "Do build with CXX_MODULES enabled" ON)
-
+    option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" ON)
+    set(CMAKE_CXX_SCAN_FOR_MODULES ON)
     set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+
     set(BOOST_BUILD_TESTING ${BUILD_TESTING})
     set(Boost_VERBOSE ON)
     set(Boost_DEBUG OFF)
@@ -22,10 +23,8 @@ option(
     ON
 )
 
-if(UNIX)
-    message(STATUS "Use CMAKE_UNITY_BUILD")
-    set(CMAKE_UNITY_BUILD ON)
-endif()
+message(STATUS "Use CMAKE_UNITY_BUILD")
+set(CMAKE_UNITY_BUILD ON)
 
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
@@ -55,10 +54,21 @@ if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 endif()
 
 set(BOOST_LIBS_REQUIRED headers)
-set(BOOST_EXCLUDE_LIBRARIES locale log json wave)
+set(BOOST_EXCLUDE_LIBRARIES
+    cobalt
+    fiber
+    # XXX graph # deps on any, serialization
+    iostreams
+    locale
+    log
+    json
+    # XXX serialization # FIXME: fails with CMAKE_UNITY_BUILD! CK
+    timer
+    wave
+)
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
-    # Compiled libs without warnings OSX with clang v20.1.7
+    # NOTE: Compiled libs without warnings OSX with clang v21.1.7! CK
     list(
         APPEND BOOST_INCLUDE_LIBRARIES
         ${BOOST_LIBS_REQUIRED}
@@ -71,7 +81,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         contract # deps on any
         coroutine
         exception
-        filesystem
+        filesystem # FIXME: Warnings with g++-15 on OSX! CK
         geometry # deps on any
         graph # deps on any, serialization
         json
@@ -140,8 +150,11 @@ FetchContent_Declare(
     URL ${BOOST_URL}
     URL_HASH SHA256=${BOOST_URL_SHA256}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
-    ${EXCLUDE_FROM_ALL}
+    PATCH_COMMAND
+        git apply -p0
+        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
     SYSTEM
+    ${EXCLUDE_FROM_ALL}
 )
 
 FetchContent_GetProperties(Boost)
@@ -151,27 +164,26 @@ if(NOT Boost_POPULATED)
     message(STATUS "Fetching Boost - done")
     set(BOOST_SOURCE ${boost_SOURCE_DIR})
     message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
-        find_package(Patch)
-        if(Patch_FOUND)
-            message(STATUS "Patch found: ${Patch_EXECUTABLE}")
-            message(STATUS "Patching Boost")
-            if(
-                EXISTS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
-            )
-                execute_process(
-                    COMMAND
-                        ${Patch_EXECUTABLE} -N -p0 -i
-                        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
-                    WORKING_DIRECTORY ${BOOST_SOURCE}
-                    COMMAND_ECHO STDOUT
-                )
-            endif()
-            message(STATUS "Patching Boost - done")
-        endif()
-    endif()
 endif()
+
+# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
+#     find_package(Patch REQUIRED)
+#     message(STATUS "Patch found: ${Patch_EXECUTABLE}")
+#     if(
+#         EXISTS
+#             ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+#     )
+#         message(STATUS "Patching Boost")
+#         execute_process(
+#             COMMAND
+#                 ${Patch_EXECUTABLE} -N -p0 -i
+#                 ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+#             WORKING_DIRECTORY ${BOOST_SOURCE}
+#             COMMAND_ECHO STDOUT
+#         )
+#         message(STATUS "Patching Boost - done")
+#     endif()
+# endif()
 
 include(cmake/CheckBoostVersion.cmake)
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
