@@ -5,9 +5,11 @@ project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.1)
 if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_BUILD_ALL "Do build all boost libs" ON)
     option(BUILD_TESTING "Build the tests." OFF)
-    option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" ON)
-    set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-    set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+    if(UNIX)
+        option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" ON)
+        set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+    endif()
 
     set(BOOST_BUILD_TESTING ${BUILD_TESTING})
     set(Boost_VERBOSE ON)
@@ -43,14 +45,19 @@ set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 
 # ensure that the debug and release builds use different names for the libraries that will be installed.
 set(CMAKE_DEBUG_POSTFIX -d)
-if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(stageDir ${CMAKE_CURRENT_BINARY_DIR}/stage)
+include(GNUInstallDirs)
+
+# The following code collect binaries under a stage subdirectory of the current binary directory
+# unless a parent project overrides this.
+if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${stageDir}/${CMAKE_INSTALL_BINDIR})
 endif()
 if(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${stageDir}/${CMAKE_INSTALL_LIBDIR})
 endif()
-if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${stageDir}/${CMAKE_INSTALL_LIBDIR})
 endif()
 
 set(BOOST_LIBS_REQUIRED headers)

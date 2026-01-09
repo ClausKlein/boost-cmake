@@ -12,6 +12,10 @@ on:
     # run at 15:30 on day-of-month 7.
     - cron: '30 15 7 * *'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -48,7 +52,7 @@ jobs:
           compiler: llvm
 
       - name: Configure CMake
-        run: cmake --preset ${{env.BUILD_TYPE}}
+        run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE
 
       - name: Build
         # Build your program with the given configuration

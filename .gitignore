@@ -1,7 +1,11 @@
 *~
 *.sw?
 *.tmp
-build*/
-boost/
+.cache/
 .idea/
+.vs/
+.vscode/
+CMakeUserPresets.json
+build/
+compile_commands.json
 stagedir/

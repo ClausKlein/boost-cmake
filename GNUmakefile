@@ -32,12 +32,16 @@ else ifeq (${hostSystemName},Linux)
 endif
 
 #####################################################################
-.PHONY: all fresh build test install format clean distclean
+.PHONY: all fresh build test install examples format clean distclean
 
 all: test
 
+examples: # XXX install
+	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh
+	ninja -C build test
+
 fresh:
-	cmake --workflow --preset Release --fresh
+	cmake --workflow --preset Release --log-level=VERBOSE --fresh
 
 compile_commands.json: build/Release/compile_commands.json
 	ln -sf $< .

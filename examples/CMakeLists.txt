@@ -19,24 +19,12 @@ if(PROJECT_IS_TOP_LEVEL)
     block()
         set(BOOST_DEBUG YES)
         set(BOOST_VERBOSE YES)
-        list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
-
-        # set(CPM_USE_LOCAL_PACKAGES YES)
-        # include(../cmake/CPM.cmake)
-        # find_package(Boost 1.90 COMPONENTS asio regex unit_test_framework)
-        # if(NOT Boost_FOUND)
-        #     cpmaddpackage(
-        #       NAME Boost-CMake
-        #       GIT_TAG v1.90.0-dev1
-        #       GITHUB_REPOSITORY "ClausKlein/boost-cmake"
-        #     )
-        # endif()
+        list(APPEND BOOST_INCLUDE_LIBRARIES any asio regex test)
 
         set(CMAKE_SKIP_INSTALL_RULES ON)
-        set(CMAKE_INSTALL_MESSAGE LAZY)
         set(CMAKE_UNITY_BUILD ON)
 
-        set(BOOST_ENABLE_CMAKE ON)
+        # XXX set(BOOST_ENABLE_CMAKE ON)
         set(BUILD_SHARED_LIBS ON)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
         set(BOOST_VERSION 1.90.0)
@@ -53,6 +41,7 @@ if(PROJECT_IS_TOP_LEVEL)
             FIND_PACKAGE_ARGS
                 ${BOOST_VERSION}
                 COMPONENTS
+                any
                 asio
                 regex
                 unit_test_framework
@@ -63,24 +52,24 @@ endif()
 
 # ---- Create test binaries ----
 
+add_executable(ExampleAny any_usage_sample.cpp)
+target_link_libraries(ExampleAny PRIVATE Boost::any)
+
 add_executable(ExampleAsio deferred.cpp)
-# XXX target_compile_features(ExampleAsio PRIVATE cxx_std_20)
+target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 
 add_executable(ExampleRegex regex.cpp)
-# XXX target_compile_features(ExampleRegex PRIVATE cxx_std_20)
-
-target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 target_link_libraries(ExampleRegex PRIVATE Boost::regex)
 
 if(TARGET Boost::unit_test_framework)
     add_executable(ExampleTest const_string_test.cpp)
-    # XXX target_compile_features(ExampleTest PRIVATE cxx_std_20)
     target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
     add_test(NAME ExampleTest COMMAND ExampleTest)
 endif()
 
 # ---- Testing ----
 
+add_test(NAME ExampleAny COMMAND ExampleAny)
 add_test(NAME ExampleAsio COMMAND ExampleAsio)
 add_test(NAME ExampleRegex COMMAND ExampleRegex)
 
