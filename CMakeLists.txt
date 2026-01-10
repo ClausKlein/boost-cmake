@@ -6,10 +6,10 @@ if(PROJECT_IS_TOP_LEVEL)
     option(BUILD_TESTING "Build the tests." OFF)
     if(UNIX)
         option(BOOST_BUILD_ALL "Do build all boost libs" ON)
-        option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" ON)
-        set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
     endif()
+    option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" ON)
+    set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+    set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
 
     set(BOOST_BUILD_TESTING ${BUILD_TESTING})
     set(Boost_VERBOSE ON)
@@ -24,9 +24,14 @@ option(
     "A standard CMake variable that determines whether to build shared or static libraries. Defaults to ON"
     ON
 )
+if(BOOST_USE_MODULES AND NOT UNIX)
+    set(BUILD_SHARED_LIBS OFF)
+endif()
 
-message(STATUS "Use CMAKE_UNITY_BUILD")
-set(CMAKE_UNITY_BUILD ON)
+if(NOT BOOST_USE_MODULES)
+    message(STATUS "Use CMAKE_UNITY_BUILD")
+    set(CMAKE_UNITY_BUILD ON)
+endif()
 
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
@@ -64,12 +69,10 @@ set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
     cobalt
     fiber
-    # XXX graph # deps on any, serialization
     iostreams
     locale
     log
     json
-    # XXX serialization # FIXME: fails with CMAKE_UNITY_BUILD! CK
     timer
     wave
 )

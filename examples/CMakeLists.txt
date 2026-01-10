@@ -26,7 +26,6 @@ if(PROJECT_IS_TOP_LEVEL)
         list(APPEND BOOST_INCLUDE_LIBRARIES any asio regex test)
 
         set(CMAKE_SKIP_INSTALL_RULES ON)
-        set(CMAKE_UNITY_BUILD ON)
 
         set(BUILD_SHARED_LIBS ON)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
@@ -56,9 +55,9 @@ endif()
 # ---- Create test binaries ----
 
 if(BOOST_USE_MODULES)
-    add_executable(ExampleAny any_usage_sample.cpp)
-    target_link_libraries(ExampleAny PRIVATE Boost::any)
-    add_test(NAME ExampleAny COMMAND ExampleAny)
+    add_executable(ExampleModuleAny any_module_usage_sample.cpp)
+    target_link_libraries(ExampleModuleAny PRIVATE Boost::any)
+    add_test(NAME ExampleModuleAny COMMAND ExampleModuleAny)
 endif()
 
 add_executable(ExampleAsio deferred.cpp)
