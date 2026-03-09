@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.30...4.3)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.1)
+# gersemi: off
+project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.2)
+# gersemi: on
 
 if(PROJECT_IS_TOP_LEVEL)
     option(BUILD_TESTING "Build the tests." OFF)

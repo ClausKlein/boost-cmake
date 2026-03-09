@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.30...4.3)
 
+# test boost-cmake v1.90.0-rc2
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
@@ -47,7 +48,7 @@ if(PROJECT_IS_TOP_LEVEL)
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                ${BOOST_VERSION}
+                1.90.0.1
                 COMPONENTS
                 any
                 asio
