@@ -8,27 +8,27 @@ MAKEFLAGS+= --warn-undefined-variables
 export hostSystemName=$(shell uname)
 
 ifeq (${hostSystemName},Darwin)
-  export LLVM_PREFIX=$(shell brew --prefix llvm)
-  export LLVM_DIR=$(shell realpath ${LLVM_PREFIX})
+  export LLVM_PREFIX:=$(shell brew --prefix llvm)
+  export LLVM_DIR:=$(shell realpath ${LLVM_PREFIX})
   export PATH:=${LLVM_DIR}/bin:${PATH}
 
-  export CMAKE_CXX_STDLIB_MODULES_JSON=${LLVM_DIR}/lib/c++/libc++.modules.json
-  export CXX=clang++
-  export LDFLAGS=-L$(LLVM_DIR)/lib/c++ -lc++abi -lc++ -lc++experimental
-  export GCOV="llvm-cov gcov"
+  export CMAKE_CXX_STDLIB_MODULES_JSON:=${LLVM_DIR}/lib/c++/libc++.modules.json
+  export CXX:=clang++
+  export LDFLAGS:=-L$(LLVM_DIR)/lib/c++ -lc++abi # NO! -lc++ -lc++experimental
+  export GCOV:="llvm-cov gcov"
 
   ### TODO: to test g++-15:
-  export GCC_PREFIX=$(shell brew --prefix gcc)
-  export GCC_DIR=$(shell realpath ${GCC_PREFIX})
+  export GCC_PREFIX:=$(shell brew --prefix gcc)
+  export GCC_DIR:=$(shell realpath ${GCC_PREFIX})
 
-  # export CMAKE_CXX_STDLIB_MODULES_JSON=${GCC_DIR}/lib/gcc/current/libstdc++.modules.json
-  # export CXX:=g++-15
+# export CMAKE_CXX_STDLIB_MODULES_JSON:=${GCC_DIR}/lib/gcc/current/libstdc++.modules.json
+# export CXX::=g++-15
   # export CXXFLAGS:=-stdlib=libstdc++
-  # export GCOV="gcov"
+  # export GCOV:="gcov"
 else ifeq (${hostSystemName},Linux)
-  export LLVM_DIR=/usr/lib/llvm-20
+  export LLVM_DIR:=/usr/lib/llvm-20
   export PATH:=${LLVM_DIR}/bin:${PATH}
-  export CXX=clang++-20
+  export CXX:=clang++-20
 endif
 
 #####################################################################
@@ -37,8 +37,9 @@ endif
 all: test
 
 examples: # XXX install
-	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh
-	ninja -C build test
+	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh \
+		--debug-find-pkg=Boost
+	ninja -C build test -v
 
 fresh:
 	cmake --workflow --preset Release --log-level=VERBOSE --fresh

@@ -67,7 +67,7 @@ function(packageProject)
 
             string(
                 REGEX MATCH
-                "^([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?(\\.([0-9]+))?$"
+                    "^([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?(\\.([0-9]+))?$"
                 _
                 "${PROJECT_VERSION}"
             )
@@ -93,8 +93,7 @@ function(packageProject)
             string(TOUPPER ${PROJECT_NAME} UPPERCASE_PROJECT_NAME)
             # ensure that the generated macro does not include invalid characters
             string(
-                REGEX REPLACE
-                [^a-zA-Z0-9]
+                REGEX REPLACE [^a-zA-Z0-9]
                 _
                 UPPERCASE_PROJECT_NAME
                 ${UPPERCASE_PROJECT_NAME}

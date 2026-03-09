@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30...4.2)
+cmake_minimum_required(VERSION 3.30...4.3)
 
 project(BoostExamples LANGUAGES CXX)
 
@@ -17,7 +17,13 @@ if(PROJECT_IS_TOP_LEVEL)
         list(APPEND CMAKE_PREFIX_PATH ../stagedir)
     endif()
     if(NOT DEFINED BOOST_USE_MODULES)
-        set(BOOST_USE_MODULES ON)
+        set(BOOST_USE_MODULES OFF)
+    endif()
+    if(BOOST_USE_MODULES)
+        set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+    else()
+        set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     endif()
 
     block()
@@ -35,7 +41,7 @@ if(PROJECT_IS_TOP_LEVEL)
         FetchContent_Declare(
             Boost
             URL
-                https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.xz
+                https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z
             URL_HASH
                 SHA256=218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921
             EXCLUDE_FROM_ALL
