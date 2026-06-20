@@ -36,7 +36,7 @@ jobs:
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~4.2.1"
+          cmakeVersion: "~4.3.4"
           ninjaVersion: "^1.13.0"
 
       - name: Setup MSVC
