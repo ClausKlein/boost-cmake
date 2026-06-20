@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.30...4.3)
+cmake_minimum_required(VERSION 3.30...4.4)
 
-# test boost-cmake v1.90.0-rc2
+# test boost-cmake v1.91.0-rc1
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
@@ -12,7 +12,7 @@ if(PROJECT_IS_TOP_LEVEL)
 
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
     if(NOT DEFINED CMAKE_CXX_STANDARD)
-        set(CMAKE_CXX_STANDARD 20)
+        set(CMAKE_CXX_STANDARD 23)
     endif()
     if(NOT DEFINED CMAKE_PREFIX_PATH)
         list(APPEND CMAKE_PREFIX_PATH ../stagedir)
@@ -36,7 +36,7 @@ if(PROJECT_IS_TOP_LEVEL)
 
         set(BUILD_SHARED_LIBS ON)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
-        set(BOOST_VERSION 1.90.0)
+        set(BOOST_VERSION 1.91.0-1)
 
         include(FetchContent)
         FetchContent_Declare(
@@ -44,7 +44,7 @@ if(PROJECT_IS_TOP_LEVEL)
             URL
                 https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z
             URL_HASH
-                SHA256=218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921
+                SHA256:29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS

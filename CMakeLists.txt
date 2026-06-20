@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.30...4.3)
+cmake_minimum_required(VERSION 3.30...4.4)
 
 # gersemi: off
-project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.2)
+project(Boost-CMake LANGUAGES CXX VERSION 1.91.0.1)
 # gersemi: on
 
 if(PROJECT_IS_TOP_LEVEL)
@@ -75,16 +75,18 @@ set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
     cobalt
     fiber
+    graph
     iostreams
     locale
     log
     json
+    serialization
     timer
     wave
 )
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
-    # NOTE: Compiled libs without warnings OSX with clang v21.1.7! CK
+    # NOTE: Compiled libs without warnings OSX with clang v22.1.7! CK
     list(
         APPEND BOOST_INCLUDE_LIBRARIES
         ${BOOST_LIBS_REQUIRED}
@@ -99,7 +101,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         exception
         filesystem # FIXME: Warnings with g++-15 on OSX! CK
         geometry # deps on any
-        graph # deps on any, serialization
+        # TODO(CK): graph # deps on any, serialization
         json
         math
         optional
@@ -110,7 +112,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         property_map # deps on any
         property_tree # deps on any
         regex
-        serialization
+        # TODO(CK): serialization
         signals2
         system
         test
@@ -131,7 +133,7 @@ endif()
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-set(BOOST_SUBDIR boost_1_90_0)
+set(BOOST_SUBDIR boost-1.91.0-1)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
@@ -147,14 +149,15 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.90.0)
+set(BOOST_VERSION 1.91.0)
+set(BOOST_FILE_VERSION ${BOOST_VERSION}-1)
 set(BOOST_URL
-    "https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z"
+    "https://github.com/boostorg/boost/releases/download/boost-${BOOST_FILE_VERSION}/boost-${BOOST_FILE_VERSION}-cmake.7z"
     CACHE STRING
     "Boost download URL"
 )
 set(BOOST_URL_SHA256
-    "218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921"
+    "29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b"
     CACHE STRING
     "Boost download URL SHA256 checksum"
 )
@@ -166,9 +169,9 @@ FetchContent_Declare(
     URL ${BOOST_URL}
     URL_HASH SHA256=${BOOST_URL_SHA256}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
-    PATCH_COMMAND
-        git apply -p0
-        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+    # PATCH_COMMAND
+    # git apply -p0
+    # ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
     SYSTEM
     ${EXCLUDE_FROM_ALL}
 )
@@ -178,7 +181,7 @@ if(NOT Boost_POPULATED)
     message(STATUS "Fetching Boost")
     FetchContent_MakeAvailable(Boost)
     message(STATUS "Fetching Boost - done")
-    set(BOOST_SOURCE ${boost_SOURCE_DIR})
+    set(BOOST_SOURCE ${Boost_SOURCE_DIR})
     message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 endif()
 
