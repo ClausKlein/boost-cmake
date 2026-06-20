@@ -18,12 +18,12 @@
           "type": "path",
           "value": "${sourceDir}/stagedir"
         },
-        "BOOST_DISABLE_TESTS": false,
+        "BOOST_BUILD_TESTING": true,
         "BOOST_STANDALONE": true,
         "BUILD_SHARED_LIBS": true,
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_EXTENSIONS": false,
-        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_EXTENSIONS": true,
+        "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_STANDARD_REQUIRED": true,
         "CMAKE_DEBUG_POSTFIX": "-d",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
@@ -36,11 +36,17 @@
         "PATH": "$env{HOME}/.local/bin${pathListSep}$penv{PATH}"
       },
       "warnings": {
+        "dev": false,
         "deprecated": true,
         "uninitialized": true
       },
       "trace": {
-        "mode": "off"
+        "mode": "expand",
+        "source": [
+          "BoostRootNO.cmake",
+          "BoostTestJamfile.cmake",
+          "BoostTest.cmake"
+        ]
       }
     }
   ],

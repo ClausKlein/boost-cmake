@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.27...4.0)
+cmake_minimum_required(VERSION 3.30...4.3)
 
+# test boost-cmake v1.90.0-rc2
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
@@ -7,52 +8,49 @@ enable_testing()
 # ---- Dependencies ----
 
 if(PROJECT_IS_TOP_LEVEL)
+    include(../cmake/ccache.cmake)
+
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
     if(NOT DEFINED CMAKE_CXX_STANDARD)
-        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_STANDARD 20)
     endif()
     if(NOT DEFINED CMAKE_PREFIX_PATH)
         list(APPEND CMAKE_PREFIX_PATH ../stagedir)
     endif()
-    include(../cmake/ccache.cmake)
+    if(NOT DEFINED BOOST_USE_MODULES)
+        set(BOOST_USE_MODULES OFF)
+    endif()
+    if(BOOST_USE_MODULES)
+        set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+    else()
+        set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+    endif()
 
     block()
         set(BOOST_DEBUG YES)
         set(BOOST_VERBOSE YES)
-        list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
-
-        # set(CPM_USE_LOCAL_PACKAGES YES)
-        # include(../cmake/CPM.cmake)
-        # find_package(Boost 1.87 COMPONENTS asio regex unit_test_framework)
-        # if(NOT Boost_FOUND)
-        #     cpmaddpackage(
-        #       NAME Boost-CMake
-        #       GIT_TAG v1.87.0-rc6
-        #       GITHUB_REPOSITORY "ClausKlein/boost-cmake"
-        #     )
-        # endif()
+        list(APPEND BOOST_INCLUDE_LIBRARIES any asio regex test)
 
         set(CMAKE_SKIP_INSTALL_RULES ON)
-        set(CMAKE_INSTALL_MESSAGE LAZY)
-        set(CMAKE_UNITY_BUILD ON)
 
-        set(BOOST_ENABLE_CMAKE ON)
         set(BUILD_SHARED_LIBS ON)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
-        set(BOOST_VERSION 1.87.0)
+        set(BOOST_VERSION 1.90.0)
 
         include(FetchContent)
         FetchContent_Declare(
             Boost
             URL
-                https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.xz
+                https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z
             URL_HASH
-                SHA256=7da75f171837577a52bbf217e17f8ea576c7c246e4594d617bfde7fafd408be5
+                SHA256=218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                ${BOOST_VERSION}
+                1.90.0.1
                 COMPONENTS
+                any
                 asio
                 regex
                 unit_test_framework
@@ -63,18 +61,20 @@ endif()
 
 # ---- Create test binaries ----
 
+if(BOOST_USE_MODULES)
+    add_executable(ExampleModuleAny any_module_usage_sample.cpp)
+    target_link_libraries(ExampleModuleAny PRIVATE Boost::any)
+    add_test(NAME ExampleModuleAny COMMAND ExampleModuleAny)
+endif()
+
 add_executable(ExampleAsio deferred.cpp)
-# XXX target_compile_features(ExampleAsio PRIVATE cxx_std_17)
+target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 
 add_executable(ExampleRegex regex.cpp)
-# XXX target_compile_features(ExampleRegex PRIVATE cxx_std_17)
-
-target_link_libraries(ExampleAsio PRIVATE Boost::asio)
 target_link_libraries(ExampleRegex PRIVATE Boost::regex)
 
 if(TARGET Boost::unit_test_framework)
     add_executable(ExampleTest const_string_test.cpp)
-    # XXX target_compile_features(ExampleTest PRIVATE cxx_std_17)
     target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
     add_test(NAME ExampleTest COMMAND ExampleTest)
 endif()
@@ -99,5 +99,6 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
             "-DCMAKE_BUILD_TYPE=$<CONFIG>"
             "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DBOOST_USE_MODULES=${BOOST_USE_MODULES}"
     )
 endif()

@@ -1,10 +1,28 @@
-cmake_minimum_required(VERSION 3.25...4.4)
+cmake_minimum_required(VERSION 3.30...4.3)
 
-project(Boost-CMake LANGUAGES CXX VERSION 1.87.0.6)
+# gersemi: off
+project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.2)
+# gersemi: on
 
 if(PROJECT_IS_TOP_LEVEL)
-    option(BOOST_BUILD_ALL "Do build all targets" OFF)
-    option(BUILD_TESTING "Do build all tests" ON)
+    option(BUILD_TESTING "Build the tests." OFF)
+    if(UNIX)
+        option(BOOST_BUILD_ALL "Do build all boost libs" ON)
+    endif()
+    option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" OFF)
+    if(BOOST_USE_MODULES)
+        set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+    else()
+        set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+    endif()
+
+    set(BOOST_BUILD_TESTING ${BUILD_TESTING})
+    set(Boost_VERBOSE ON)
+    set(Boost_DEBUG OFF)
+    set(EXCLUDE_FROM_ALL)
+
+    enable_testing()
 endif()
 
 option(
@@ -12,8 +30,11 @@ option(
     "A standard CMake variable that determines whether to build shared or static libraries. Defaults to ON"
     ON
 )
+if(BOOST_USE_MODULES AND NOT UNIX)
+    set(BUILD_SHARED_LIBS OFF)
+endif()
 
-if(UNIX)
+if(NOT BOOST_USE_MODULES)
     message(STATUS "Use CMAKE_UNITY_BUILD")
     set(CMAKE_UNITY_BUILD ON)
 endif()
@@ -22,11 +43,12 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
 
 if(CMAKE_SKIP_INSTALL_RULES)
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY ON)
     set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+    set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
 else()
     set(EXCLUDE_FROM_ALL)
     set(BOOST_SKIP_INSTALL_RULES OFF)
+    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY ON)
 endif()
 
 # NOTE: Use the FOLDER target property to organize targets into folders.
@@ -34,57 +56,69 @@ set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 
 # ensure that the debug and release builds use different names for the libraries that will be installed.
 set(CMAKE_DEBUG_POSTFIX -d)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(stageDir ${CMAKE_CURRENT_BINARY_DIR}/stage)
+include(GNUInstallDirs)
+
+# The following code collect binaries under a stage subdirectory of the current binary directory
+# unless a parent project overrides this.
+if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${stageDir}/${CMAKE_INSTALL_BINDIR})
+endif()
+if(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${stageDir}/${CMAKE_INSTALL_LIBDIR})
+endif()
+if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${stageDir}/${CMAKE_INSTALL_LIBDIR})
+endif()
 
 set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
-    serialization
+    cobalt
+    fiber
     iostreams
-    timer
     locale
     log
-    graph
-    property_tree
+    json
+    timer
     wave
 )
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
-    # Compiled libs without warnings OSX with clang v19.1.7
+    # NOTE: Compiled libs without warnings OSX with clang v21.1.7! CK
     list(
-        APPEND
-        BOOST_INCLUDE_LIBRARIES
+        APPEND BOOST_INCLUDE_LIBRARIES
         ${BOOST_LIBS_REQUIRED}
+        any # use BOOST_USE_MODULES, deps on type_index
         asio
         atomic
-        beast
+        beast # deps on type_index
         chrono
+        container
+        contract # deps on any
+        coroutine
         exception
-        filesystem
-        program_options
+        filesystem # FIXME: Warnings with g++-15 on OSX! CK
+        geometry # deps on any
+        graph # deps on any, serialization
+        json
+        math
+        optional
+        parser # deps on type_index
+        pfr # use BOOST_USE_MODULES
+        process # deps on type_index
+        program_options # deps on any
+        property_map # deps on any
+        property_tree # deps on any
         regex
+        serialization
         signals2
         system
-        thread
         test
+        thread
+        type_index # use BOOST_USE_MODULES
+        variant2
     )
 endif()
-
-set(BOOST_LIBS_OPTIONAL
-    container
-    context
-    coroutine
-    date_time
-    exception
-    fiber
-    json
-    math
-    random
-    type_erasure
-    CACHE STRING
-    "Boost libs to be compiled"
-)
 
 if(BOOST_BUILD_ALL)
     set(BOOST_INCLUDE_LIBRARIES)
@@ -94,12 +128,10 @@ else()
     list(REMOVE_DUPLICATES BOOST_INCLUDE_LIBRARIES)
 endif()
 
-enable_testing()
-
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-set(BOOST_SUBDIR boost_1_87_0)
+set(BOOST_SUBDIR boost_1_90_0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
@@ -115,14 +147,14 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.87.0)
+set(BOOST_VERSION 1.90.0)
 set(BOOST_URL
     "https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z"
     CACHE STRING
     "Boost download URL"
 )
 set(BOOST_URL_SHA256
-    "61d61a3f33283bab8f3736745a4e47c37141f07e413986cd05d1f942c69d529a"
+    "218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921"
     CACHE STRING
     "Boost download URL SHA256 checksum"
 )
@@ -134,8 +166,11 @@ FetchContent_Declare(
     URL ${BOOST_URL}
     URL_HASH SHA256=${BOOST_URL_SHA256}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
-    ${EXCLUDE_FROM_ALL}
+    PATCH_COMMAND
+        git apply -p0
+        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
     SYSTEM
+    ${EXCLUDE_FROM_ALL}
 )
 
 FetchContent_GetProperties(Boost)
@@ -144,7 +179,27 @@ if(NOT Boost_POPULATED)
     FetchContent_MakeAvailable(Boost)
     message(STATUS "Fetching Boost - done")
     set(BOOST_SOURCE ${boost_SOURCE_DIR})
+    message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 endif()
+
+# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
+#     find_package(Patch REQUIRED)
+#     message(STATUS "Patch found: ${Patch_EXECUTABLE}")
+#     if(
+#         EXISTS
+#             ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+#     )
+#         message(STATUS "Patching Boost")
+#         execute_process(
+#             COMMAND
+#                 ${Patch_EXECUTABLE} -N -p0 -i
+#                 ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+#             WORKING_DIRECTORY ${BOOST_SOURCE}
+#             COMMAND_ECHO STDOUT
+#         )
+#         message(STATUS "Patching Boost - done")
+#     endif()
+# endif()
 
 include(cmake/CheckBoostVersion.cmake)
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
@@ -156,6 +211,12 @@ configure_file(
     ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake
     COPYONLY
 )
+
+list(APPEND CMAKE_MODULE_PATH ${BOOST_SOURCE}/tools/cmake/include)
+include(BoostTestJamfile OPTIONAL RESULT_VARIABLE HAVE_BOOST_TEST)
+if(HAVE_BOOST_TEST)
+    message(STATUS "We found boost ctest module: ${HAVE_BOOST_TEST}")
+endif()
 
 #############################################################
 find_package(Threads)
@@ -180,6 +241,7 @@ if(CMAKE_SKIP_INSTALL_RULES)
     return()
 endif()
 
+set(CPACK_GENERATOR "TGZ")
 include(CPack)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)

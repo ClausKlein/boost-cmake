@@ -12,6 +12,10 @@ on:
     # run at 15:30 on day-of-month 7.
     - cron: '30 15 7 * *'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -32,8 +36,8 @@ jobs:
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~3.27.0"
-          ninjaVersion: "^1.11.1"
+          cmakeVersion: "~4.2.1"
+          ninjaVersion: "^1.13.0"
 
       - name: Setup MSVC
         if: startsWith(matrix.os, 'windows')
@@ -41,8 +45,14 @@ jobs:
         with:
           arch: x64
 
+      - name: Setup Cpp
+        if: matrix.os != 'windows'
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: llvm
+
       - name: Configure CMake
-        run: cmake --preset ${{env.BUILD_TYPE}}
+        run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE
 
       - name: Build
         # Build your program with the given configuration
