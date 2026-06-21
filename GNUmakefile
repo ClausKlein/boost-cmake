@@ -21,8 +21,8 @@ ifeq (${hostSystemName},Darwin)
   export GCC_PREFIX:=$(shell brew --prefix gcc)
   export GCC_DIR:=$(shell realpath ${GCC_PREFIX})
 
-# export CMAKE_CXX_STDLIB_MODULES_JSON:=${GCC_DIR}/lib/gcc/current/libstdc++.modules.json
-# export CXX::=g++-15
+  # export CMAKE_CXX_STDLIB_MODULES_JSON:=${GCC_DIR}/lib/gcc/current/libstdc++.modules.json
+  # export CXX::=g++-15
   # export CXXFLAGS:=-stdlib=libstdc++
   # export GCOV:="gcov"
 else ifeq (${hostSystemName},Linux)
@@ -42,13 +42,13 @@ examples: # XXX install
 	ninja -C build test -v
 
 fresh:
-	cmake --workflow --preset Release --log-level=VERBOSE --fresh
+	cmake --workflow --preset Release --fresh
 
 compile_commands.json: build/Release/compile_commands.json
 	ln -sf $< .
 
 build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
-	cmake --preset Release --log-level=VERBOSE
+	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON
 
 build: compile_commands.json
 	cmake --build --preset Release

@@ -75,12 +75,10 @@ set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
     cobalt
     fiber
-    graph
     iostreams
     locale
     log
     json
-    serialization
     timer
     wave
 )
@@ -101,7 +99,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         exception
         filesystem # FIXME: Warnings with g++-15 on OSX! CK
         geometry # deps on any
-        # TODO(CK): graph # deps on any, serialization
+        graph # deps on any, serialization
         json
         math
         optional
@@ -112,7 +110,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         property_map # deps on any
         property_tree # deps on any
         regex
-        # TODO(CK): serialization
+        serialization
         signals2
         system
         test
@@ -169,9 +167,9 @@ FetchContent_Declare(
     URL ${BOOST_URL}
     URL_HASH SHA256=${BOOST_URL_SHA256}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
-    # PATCH_COMMAND
-    # git apply -p0
-    # ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+    PATCH_COMMAND
+        git apply -p0
+        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
     SYSTEM
     ${EXCLUDE_FROM_ALL}
 )
