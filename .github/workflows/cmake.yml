@@ -52,7 +52,7 @@ jobs:
           compiler: llvm
 
       - name: Configure CMake
-        run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE
+        run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON
 
       - name: Build
         # Build your program with the given configuration
