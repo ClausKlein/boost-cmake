@@ -48,7 +48,8 @@ compile_commands.json: build/Release/compile_commands.json
 	ln -sf $< .
 
 build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
-	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON
+	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON -D CMAKE_CXX_MODULE_STD=ON \
+	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON}
 
 build: compile_commands.json
 	cmake --build --preset Release

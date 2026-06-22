@@ -87,3 +87,25 @@
  add_library(boost_serialization
    src/archive_exception.cpp
    src/basic_archive.cpp
+--- libs/any/CMakeLists.txt.old	2026-06-22 19:54:36.000000000 
++++ libs/any/CMakeLists.txt	2026-06-22 19:59:27.000000000 
+@@ -14,16 +14,17 @@
+     )
+ 
+     target_compile_features(boost_any PUBLIC cxx_std_20)
+     target_compile_definitions(boost_any PUBLIC BOOST_USE_MODULES)
+     set(__boost_cxx_standard ${CMAKE_CXX_STANDARD})
+     if (NOT __boost_cxx_standard)
+-        set(__boost_cxx_standard 20)
++        set(__boost_cxx_standard 23)
+     endif()
+     if (CMAKE_CXX_COMPILER_IMPORT_STD AND ${__boost_cxx_standard} IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_any PRIVATE BOOST_ANY_USE_STD_MODULE)
++        target_compile_definitions(boost_any PUBLIC BOOST_ANY_USE_STD_MODULE)
++        target_compile_features(boost_any PUBLIC cxx_std_${__boost_cxx_standard})
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+     endif()
+     set(__scope PUBLIC)
+ else()

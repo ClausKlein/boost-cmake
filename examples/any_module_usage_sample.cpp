@@ -47,7 +47,7 @@ namespace {
 auto main() -> int {
   boost::any const a = 42;
 #ifdef BOOST_ANY_USE_STD_MODULE
-  std::println(stdout, "{}", any_to_string<int, double, std::string>(a));
+  std::println(std::cout, "{}", any_to_string<int, double, std::string>(a));
 #else
   std::cout << any_to_string<int, double, std::string>(a) << '\n';
 #endif
