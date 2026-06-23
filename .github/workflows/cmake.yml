@@ -27,9 +27,9 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [macos, ubuntu, windows]
+        os: [macos-latest, ubuntu-26.04, windows-latest]
 
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }} # -latest
 
     steps:
       - uses: actions/checkout@v4
@@ -46,10 +46,10 @@ jobs:
           arch: x64
 
       - name: Setup Cpp
-        if: matrix.os != 'windows'
+        if: matrix.os != 'windows-latest'
         uses: aminya/setup-cpp@v1
         with:
-          compiler: llvm
+          compiler: llvm-22
 
       - name: Configure CMake
         run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON
