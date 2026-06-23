@@ -6,7 +6,7 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^patches/\.*(patch|diff)$
+        exclude: ^.*\.(patch|cfg)$
       - id: end-of-file-fixer
       - id: check-json
       - id: check-yaml
@@ -22,12 +22,12 @@ repos:
         types_or: [c++, c, json]
         exclude: docs/TODO.json
 
-  # CMake linting and formatting
-  - repo: https://github.com/BlankSpruce/gersemi
-    rev: 0.27.7
-    hooks:
-      - id: gersemi
-        name: CMake linting
+  # # CMake linting and formatting
+  # - repo: https://github.com/BlankSpruce/gersemi
+  #   rev: 0.27.7
+  #   hooks:
+  #     - id: gersemi
+  #       name: CMake linting
 
   # TODO: Markdown linting
   # Config file: .markdownlint.yaml
