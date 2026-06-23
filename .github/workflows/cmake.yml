@@ -38,7 +38,6 @@ jobs:
         with:
           cmakeVersion: "^4.3.4"
           ninjaVersion: "~1.13.0"
-
       - name: Setup MSVC
         if: startsWith(matrix.os, 'windows')
         uses: TheMrMilchmann/setup-msvc-dev@v4
