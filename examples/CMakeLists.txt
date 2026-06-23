@@ -51,11 +51,7 @@ if(PROJECT_IS_TOP_LEVEL)
             SYSTEM
             FIND_PACKAGE_ARGS
                 1.90.0.1
-                COMPONENTS
-                any
-                asio
-                regex
-                unit_test_framework
+                COMPONENTS any asio regex unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
     endblock()

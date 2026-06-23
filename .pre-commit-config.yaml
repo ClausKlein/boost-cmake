@@ -5,7 +5,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      # - id: trailing-whitespace
+      - id: trailing-whitespace
+        exclude: ^patches/\.*(patch|diff)$
       - id: end-of-file-fixer
       - id: check-json
       - id: check-yaml
@@ -23,7 +24,7 @@ repos:
 
   # CMake linting and formatting
   - repo: https://github.com/BlankSpruce/gersemi
-    rev: 0.26.0
+    rev: 0.27.7
     hooks:
       - id: gersemi
         name: CMake linting
