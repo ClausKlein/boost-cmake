@@ -36,12 +36,12 @@ jobs:
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~4.3.4"
-          ninjaVersion: "^1.13.0"
+          cmakeVersion: "^4.3.4"
+          ninjaVersion: "~1.13.0"
 
       - name: Setup MSVC
         if: startsWith(matrix.os, 'windows')
-        uses: TheMrMilchmann/setup-msvc-dev@v3
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
 
