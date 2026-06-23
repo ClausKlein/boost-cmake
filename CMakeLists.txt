@@ -79,6 +79,7 @@ endif()
 
 set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
+    any
     cobalt
     contract # FIXME: deps on any! CK
     fiber
