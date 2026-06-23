@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.30...4.4)
 
+include(../cmake/enable-experimental-import-std.cmake)
+
 # test boost-cmake v1.91.0-rc1
 project(BoostExamples LANGUAGES CXX)
 
@@ -24,7 +26,11 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+        if(CMAKE_CXX_STANDARD GREATER_EQUAL 23)
+            set(CMAKE_CXX_MODULE_STD ON)
+        else()
+            set(CMAKE_CXX_MODULE_STD OFF)
+        endif()
     else()
         set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     endif()
@@ -94,7 +100,9 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" --build-generator
             ${CMAKE_GENERATOR} --build-makeprogram ${CMAKE_MAKE_PROGRAM}
             --build-options "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DCMAKE_CXX_MODULE_STD=${CMAKE_CXX_MODULE_STD}"
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
+            "-DCMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON}"
             "-DCMAKE_BUILD_TYPE=$<CONFIG>"
             "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
             "-DBOOST_USE_MODULES=${BOOST_USE_MODULES}"

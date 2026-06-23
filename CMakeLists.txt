@@ -1,28 +1,6 @@
 cmake_minimum_required(VERSION 3.30...4.4)
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30.0")
-    if(CMAKE_VERSION VERSION_LESS "3.31.8")
-        set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD
-            "0e5b6991-d74f-4b3d-a41c-cf096e0b2508"
-        )
-    elseif(CMAKE_VERSION VERSION_LESS "4.0.0")
-        set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD
-            "d0edc3af-4c50-42ea-a356-e2862fe7a444"
-        )
-    elseif(CMAKE_VERSION VERSION_LESS "4.0.3")
-        set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD
-            "a9e1cf81-9932-4810-974b-6eccaf14e457"
-        )
-    elseif(CMAKE_VERSION VERSION_LESS "4.3.0")
-        set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD
-            "d0edc3af-4c50-42ea-a356-e2862fe7a444"
-        )
-    elseif(CMAKE_VERSION VERSION_LESS "4.4.0")
-        set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD
-            "451f2fe2-a8a2-47c3-bc32-94786d8fc91b"
-        )
-    endif()
-endif()
+include(cmake/enable-experimental-import-std.cmake)
 
 # gersemi: off
 project(Boost-CMake LANGUAGES CXX VERSION 1.91.0.1)
@@ -36,7 +14,11 @@ if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" OFF)
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+        if(CMAKE_CXX_STANDARD GREATER_EQUAL 23)
+            set(CMAKE_CXX_MODULE_STD ON)
+        else()
+            set(CMAKE_CXX_MODULE_STD OFF)
+        endif()
     else()
         set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     endif()
@@ -98,11 +80,16 @@ endif()
 set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
     cobalt
+    contract # FIXME: deps on any! CK
     fiber
     iostreams
+    graph # FIXME: deps on any! CK
     locale
     log
     json
+    program_options # FIXME: deps on any! CK
+    property_map # FIXME: deps on any! CK
+    property_tree # FIXME: deps on any! CK
     timer
     wave
 )
@@ -118,22 +105,22 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         beast # deps on type_index
         chrono
         container
-        contract # deps on any
+        contract # TODO: deps on any! CK
         coroutine
         exception
         filesystem # FIXME: Warnings with g++-15 on OSX! CK
         geometry # deps on any
-        graph # deps on any, serialization
+        graph # TODO: deps on any, serialization! CK
         json
-        lexical_cast # TODO(CK): use BOOST_USE_MODULES but import std wrong!
+        lexical_cast # use BOOST_USE_MODULES
         math
         optional
         parser # deps on type_index
         pfr # use BOOST_USE_MODULES
         process # deps on type_index
-        program_options # deps on any
-        property_map # deps on any
-        property_tree # deps on any
+        program_options # TODO: deps on any! CK
+        property_map # TODO: deps on any! CK
+        property_tree # TODO: deps on any! CK
         regex
         serialization
         signals2
