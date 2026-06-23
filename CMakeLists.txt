@@ -36,7 +36,7 @@ if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" OFF)
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        # XXX set(CMAKE_CXX_MODULE_STD ON) # TODO(CK): not yet!
+        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
     else()
         set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     endif()
@@ -125,6 +125,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         geometry # deps on any
         graph # deps on any, serialization
         json
+        lexical_cast # TODO(CK): use BOOST_USE_MODULES but import std wrong!
         math
         optional
         parser # deps on type_index
