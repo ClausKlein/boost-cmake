@@ -38,6 +38,9 @@ all: test
 
 examples: # XXX install
 	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh \
+	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON} \
+	-D CMAKE_CXX_MODULE_STD=ON -D CMAKE_CXX_STANDARD=23 \
+	-D BOOST_USE_MODULES=ON \
 		--debug-find-pkg=Boost
 	ninja -C build test -v
 
@@ -49,8 +52,10 @@ compile_commands.json: build/Release/compile_commands.json
 
 # NOTE: Works only yet on OSX with clang v22.1.7 with this arguments! CK
 build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
-	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON -D CMAKE_CXX_MODULE_STD=ON \
-	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON} -D CMAKE_CXX_STANDARD=26
+	cmake --version
+	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON \
+	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON} \
+	-D CMAKE_CXX_MODULE_STD=OFF -D CMAKE_CXX_STANDARD=20
 
 build: compile_commands.json
 	cmake --build --preset Release
@@ -59,7 +64,8 @@ test: install
 	ctest --preset Release
 
 install: build
-	cmake --build --preset Release --target install
+	# XXX cmake --build --preset Release --target install
+	cmake --install build/Release --prefix=${HOME}/.local/
 
 clean:
 	-cmake --build --preset Release --target clean

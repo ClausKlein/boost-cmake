@@ -12,6 +12,8 @@ enable_testing()
 if(PROJECT_IS_TOP_LEVEL)
     include(../cmake/ccache.cmake)
 
+    find_package(magic_enum)
+
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
     set(CMAKE_CXX_EXTENSIONS OFF)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -64,6 +66,15 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 # ---- Create test binaries ----
+
+if(PROJECT_IS_TOP_LEVEL AND TARGET magic_enum::magic_enum)
+    add_executable(BitManipulation bit_manipulation.cpp)
+    target_link_libraries(BitManipulation PRIVATE magic_enum::magic_enum)
+    target_compile_definitions(BitManipulation PRIVATE USE_IMPORT_STD)
+    target_compile_features(BitManipulation PRIVATE cxx_std_23)
+    set_target_properties(BitManipulation PROPERTIES CXX_MODULE_STD ON)
+    add_test(NAME BitManipulation COMMAND BitManipulation)
+endif()
 
 if(BOOST_USE_MODULES AND TARGET Boost::any)
     add_executable(ExampleModuleAny any_module_usage_sample.cpp)
