@@ -12,7 +12,7 @@ enable_testing()
 if(PROJECT_IS_TOP_LEVEL)
     include(../cmake/ccache.cmake)
 
-    find_package(magic_enum)
+    # NO! find_package(magic_enum)
 
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
     set(CMAKE_CXX_EXTENSIONS OFF)
@@ -46,19 +46,19 @@ if(PROJECT_IS_TOP_LEVEL)
 
         set(BUILD_SHARED_LIBS OFF)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
-        set(BOOST_VERSION 1.91.0-1)
+        set(BOOST_VERSION 1.91.0)
 
         include(FetchContent)
         FetchContent_Declare(
             Boost
             URL
-                https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z
+                https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}-1/boost-${BOOST_VERSION}-1-cmake.7z
             URL_HASH
-                SHA256:29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b
+                SHA256=29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                1.91.0.3
+                ${BOOST_VERSION}
                 COMPONENTS any asio regex unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
