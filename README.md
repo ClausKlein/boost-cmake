@@ -41,8 +41,8 @@ Boost will automatically be downloaded from https://github.com/boostorg/boost/re
 If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
-set(BOOST_URL http://internal.mirror/boost-1.91.0-1-cmake.7z)
-set(BOOST_URL_SHA256 29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b)
+set(BOOST_URL http://internal.mirror/boost-1.92.0-cmake.7z)
+set(BOOST_URL_SHA256 158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b)
 ```
 
 If you have boost-cmake and Boost cmake sources files already available and want to point to them, you can use the following:

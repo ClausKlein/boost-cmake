@@ -44,13 +44,13 @@ examples: # XXX install
 		--debug-find-pkg=Boost
 	ninja -C build test -v
 
-fresh:
+fresh: CMakePresets.json
 	cmake --workflow --preset Release --fresh
 
 compile_commands.json: build/Release/compile_commands.json
 	ln -sf $< .
 
-# NOTE: Works only yet on OSX with clang v22.1.7 with this arguments! CK
+# NOTE: Works only yet on OSX with clang v22.1.8 with this arguments! CK
 build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
 	cmake --version
 	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON \
@@ -69,10 +69,10 @@ install: build
 
 clean:
 	-cmake --build --preset Release --target clean
-	-find . -name '*~' -delete
 
 distclean: # XXX clean
 	rm -rf build stagedir .cache compile_commands.json
+	-find . -name '*~' -delete
 
 format:
 	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i

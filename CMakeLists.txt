@@ -125,6 +125,7 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         regex
         serialization
         signals2
+        boost_stacktrace # FIXME: BOOST_USE_MODULES
         system
         test
         thread
@@ -144,7 +145,7 @@ endif()
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-set(BOOST_SUBDIR boost-1.91.0-1)
+set(BOOST_SUBDIR boost-1.92.0)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
@@ -160,15 +161,15 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.91.0)
-set(BOOST_FILE_VERSION ${BOOST_VERSION}-1)
+set(BOOST_VERSION 1.92.0)
+set(BOOST_FILE_VERSION ${BOOST_VERSION})
 set(BOOST_URL
     "https://github.com/boostorg/boost/releases/download/boost-${BOOST_FILE_VERSION}/boost-${BOOST_FILE_VERSION}-cmake.7z"
     CACHE STRING
     "Boost download URL"
 )
 set(BOOST_URL_SHA256
-    "29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b"
+    "158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b"
     CACHE STRING
     "Boost download URL SHA256 checksum"
 )

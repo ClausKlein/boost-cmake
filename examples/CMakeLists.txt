@@ -46,7 +46,7 @@ if(PROJECT_IS_TOP_LEVEL)
 
         set(BUILD_SHARED_LIBS OFF)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
-        set(BOOST_VERSION 1.91.0)
+        set(BOOST_VERSION 1.92.0)
 
         include(FetchContent)
         FetchContent_Declare(
@@ -54,11 +54,11 @@ if(PROJECT_IS_TOP_LEVEL)
             URL
                 https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}-1/boost-${BOOST_VERSION}-1-cmake.7z
             URL_HASH
-                SHA256=29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b
+                SHA256:158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                ${BOOST_VERSION}
+                1.92.0.1
                 COMPONENTS any asio regex unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
