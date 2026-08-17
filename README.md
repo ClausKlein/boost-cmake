@@ -23,7 +23,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" NO)
 set(BOOST_INCLUDE_LIBRARIES any pfr beast filesystem headers)
 set(BOOST_USE_MODULES ON)
 set(Boost_VERBOSE ON)
-CPMAddPackage("gh:ClausKlein/boost-cmake#v1.91.0-rc1")
+CPMAddPackage("gh:ClausKlein/boost-cmake#v1.91.0-rc2")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
