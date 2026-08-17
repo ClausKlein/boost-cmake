@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.30...4.4)
 include(cmake/enable-experimental-import-std.cmake)
 
 # gersemi: off
-project(Boost-CMake LANGUAGES CXX VERSION 1.91.0.3)
+project(Boost-CMake LANGUAGES CXX VERSION 1.92.0.1)
 # gersemi: on
 
 if(PROJECT_IS_TOP_LEVEL)

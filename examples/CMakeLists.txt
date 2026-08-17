@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30...4.4)
 
 include(../cmake/enable-experimental-import-std.cmake)
 
-# test boost-cmake 1.91.0.3
+# test boost-cmake 1.92.0.1
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
