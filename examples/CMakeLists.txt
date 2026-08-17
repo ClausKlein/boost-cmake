@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30...4.4)
 
 include(../cmake/enable-experimental-import-std.cmake)
 
-# test boost-cmake v1.91.0-rc2
+# test boost-cmake 1.91.0.3
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
@@ -58,7 +58,7 @@ if(PROJECT_IS_TOP_LEVEL)
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                1.91.0.1
+                1.91.0.3
                 COMPONENTS any asio regex unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
