@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.30...4.3)
+cmake_minimum_required(VERSION 3.30...4.4)
+
+include(cmake/enable-experimental-import-std.cmake)
 
 # gersemi: off
-project(Boost-CMake LANGUAGES CXX VERSION 1.90.0.2)
+project(Boost-CMake LANGUAGES CXX VERSION 1.91.0.2)
 # gersemi: on
 
 if(PROJECT_IS_TOP_LEVEL)
@@ -12,7 +14,11 @@ if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" OFF)
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+        if(CMAKE_CXX_STANDARD GREATER_EQUAL 23)
+            set(CMAKE_CXX_MODULE_STD ON)
+        else()
+            set(CMAKE_CXX_MODULE_STD OFF)
+        endif()
     else()
         set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     endif()
@@ -73,18 +79,24 @@ endif()
 
 set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
+    any
     cobalt
+    contract # FIXME: deps on any! CK
     fiber
     iostreams
+    graph # FIXME: deps on any! CK
     locale
     log
     json
+    program_options # FIXME: deps on any! CK
+    property_map # FIXME: deps on any! CK
+    property_tree # FIXME: deps on any! CK
     timer
     wave
 )
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
-    # NOTE: Compiled libs without warnings OSX with clang v21.1.7! CK
+    # NOTE: Compiled libs without warnings OSX with clang v22.1.7! CK
     list(
         APPEND BOOST_INCLUDE_LIBRARIES
         ${BOOST_LIBS_REQUIRED}
@@ -94,21 +106,22 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         beast # deps on type_index
         chrono
         container
-        contract # deps on any
+        contract # TODO: deps on any! CK
         coroutine
         exception
         filesystem # FIXME: Warnings with g++-15 on OSX! CK
         geometry # deps on any
-        graph # deps on any, serialization
+        graph # TODO: deps on any, serialization! CK
         json
+        lexical_cast # use BOOST_USE_MODULES
         math
         optional
         parser # deps on type_index
         pfr # use BOOST_USE_MODULES
         process # deps on type_index
-        program_options # deps on any
-        property_map # deps on any
-        property_tree # deps on any
+        program_options # TODO: deps on any! CK
+        property_map # TODO: deps on any! CK
+        property_tree # TODO: deps on any! CK
         regex
         serialization
         signals2
@@ -131,7 +144,7 @@ endif()
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
 
-set(BOOST_SUBDIR boost_1_90_0)
+set(BOOST_SUBDIR boost-1.91.0-1)
 if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
@@ -147,14 +160,15 @@ if(FETCHCONTENT_SOURCE_DIR_BOOST)
     )
 endif()
 
-set(BOOST_VERSION 1.90.0)
+set(BOOST_VERSION 1.91.0)
+set(BOOST_FILE_VERSION ${BOOST_VERSION}-1)
 set(BOOST_URL
-    "https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z"
+    "https://github.com/boostorg/boost/releases/download/boost-${BOOST_FILE_VERSION}/boost-${BOOST_FILE_VERSION}-cmake.7z"
     CACHE STRING
     "Boost download URL"
 )
 set(BOOST_URL_SHA256
-    "218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921"
+    "29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b"
     CACHE STRING
     "Boost download URL SHA256 checksum"
 )
@@ -178,7 +192,7 @@ if(NOT Boost_POPULATED)
     message(STATUS "Fetching Boost")
     FetchContent_MakeAvailable(Boost)
     message(STATUS "Fetching Boost - done")
-    set(BOOST_SOURCE ${boost_SOURCE_DIR})
+    set(BOOST_SOURCE ${Boost_SOURCE_DIR})
     message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 endif()
 

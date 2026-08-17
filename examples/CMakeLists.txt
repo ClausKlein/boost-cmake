@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.30...4.3)
+cmake_minimum_required(VERSION 3.30...4.4)
 
-# test boost-cmake v1.90.0-rc2
+include(../cmake/enable-experimental-import-std.cmake)
+
+# test boost-cmake v1.91.0-rc2
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
@@ -10,7 +12,11 @@ enable_testing()
 if(PROJECT_IS_TOP_LEVEL)
     include(../cmake/ccache.cmake)
 
-    set(CMAKE_SKIP_TEST_ALL_DEPENDENCY NO)
+    find_package(magic_enum)
+
+    set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
     if(NOT DEFINED CMAKE_CXX_STANDARD)
         set(CMAKE_CXX_STANDARD 20)
     endif()
@@ -22,7 +28,11 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        set(CMAKE_CXX_MODULE_STD OFF) # TODO(CK): not yet!
+        if(CMAKE_CXX_STANDARD GREATER_EQUAL 23)
+            set(CMAKE_CXX_MODULE_STD ON)
+        else()
+            set(CMAKE_CXX_MODULE_STD OFF)
+        endif()
     else()
         set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
     endif()
@@ -30,13 +40,13 @@ if(PROJECT_IS_TOP_LEVEL)
     block()
         set(BOOST_DEBUG YES)
         set(BOOST_VERBOSE YES)
-        list(APPEND BOOST_INCLUDE_LIBRARIES any asio regex test)
+        list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
 
         set(CMAKE_SKIP_INSTALL_RULES ON)
 
-        set(BUILD_SHARED_LIBS ON)
+        set(BUILD_SHARED_LIBS OFF)
         set(BOOST_SKIP_INSTALL_RULES ${CMAKE_SKIP_INSTALL_RULES})
-        set(BOOST_VERSION 1.90.0)
+        set(BOOST_VERSION 1.91.0-1)
 
         include(FetchContent)
         FetchContent_Declare(
@@ -44,16 +54,12 @@ if(PROJECT_IS_TOP_LEVEL)
             URL
                 https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.7z
             URL_HASH
-                SHA256=218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921
+                SHA256:29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                1.90.0.1
-                COMPONENTS
-                any
-                asio
-                regex
-                unit_test_framework
+                1.91.0.1
+                COMPONENTS any asio regex unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
     endblock()
@@ -61,7 +67,16 @@ endif()
 
 # ---- Create test binaries ----
 
-if(BOOST_USE_MODULES)
+if(PROJECT_IS_TOP_LEVEL AND TARGET magic_enum::magic_enum)
+    add_executable(BitManipulation bit_manipulation.cpp)
+    target_link_libraries(BitManipulation PRIVATE magic_enum::magic_enum)
+    target_compile_definitions(BitManipulation PRIVATE USE_IMPORT_STD)
+    target_compile_features(BitManipulation PRIVATE cxx_std_23)
+    set_target_properties(BitManipulation PROPERTIES CXX_MODULE_STD ON)
+    add_test(NAME BitManipulation COMMAND BitManipulation)
+endif()
+
+if(BOOST_USE_MODULES AND TARGET Boost::any)
     add_executable(ExampleModuleAny any_module_usage_sample.cpp)
     target_link_libraries(ExampleModuleAny PRIVATE Boost::any)
     add_test(NAME ExampleModuleAny COMMAND ExampleModuleAny)
@@ -96,7 +111,9 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" --build-generator
             ${CMAKE_GENERATOR} --build-makeprogram ${CMAKE_MAKE_PROGRAM}
             --build-options "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DCMAKE_CXX_MODULE_STD=${CMAKE_CXX_MODULE_STD}"
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
+            "-DCMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON}"
             "-DCMAKE_BUILD_TYPE=$<CONFIG>"
             "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
             "-DBOOST_USE_MODULES=${BOOST_USE_MODULES}"

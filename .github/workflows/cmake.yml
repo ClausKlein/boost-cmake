@@ -27,32 +27,31 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [macos, ubuntu, windows]
+        os: [macos-latest, ubuntu-26.04, windows-latest]
 
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }} # -latest
 
     steps:
       - uses: actions/checkout@v4
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~4.3.4"
-          ninjaVersion: "^1.13.0"
-
+          cmakeVersion: "^4.3.4"
+          ninjaVersion: "~1.13.0"
       - name: Setup MSVC
         if: startsWith(matrix.os, 'windows')
-        uses: TheMrMilchmann/setup-msvc-dev@v3
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
 
       - name: Setup Cpp
-        if: matrix.os != 'windows'
+        if: matrix.os != 'windows-latest'
         uses: aminya/setup-cpp@v1
         with:
-          compiler: llvm
+          compiler: llvm-22
 
       - name: Configure CMake
-        run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE
+        run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON
 
       - name: Build
         # Build your program with the given configuration

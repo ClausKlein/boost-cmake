@@ -23,7 +23,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" NO)
 set(BOOST_INCLUDE_LIBRARIES any pfr beast filesystem headers)
 set(BOOST_USE_MODULES ON)
 set(Boost_VERBOSE ON)
-CPMAddPackage("gh:ClausKlein/boost-cmake#v1.90.0-rc2")
+CPMAddPackage("gh:ClausKlein/boost-cmake#v1.91.0-rc2")
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -41,8 +41,8 @@ Boost will automatically be downloaded from https://github.com/boostorg/boost/re
 If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
-set(BOOST_URL http://internal.mirror/boost-1.90.0-cmake.7z)
-set(BOOST_URL_SHA256 218e74c4aa362a994b7b7a23b2920f455a00205c656405fcf262cf60b8871921)
+set(BOOST_URL http://internal.mirror/boost-1.91.0-1-cmake.7z)
+set(BOOST_URL_SHA256 29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b)
 ```
 
 If you have boost-cmake and Boost cmake sources files already available and want to point to them, you can use the following:
@@ -70,7 +70,7 @@ packageProject(
   INCLUDE_HEADER_PATTERN "*.h"
   DISABLE_VERSION_SUFFIX YES
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "Boost 1.90"
+  DEPENDENCIES "Boost 1.91"
 )
 
 include(CPack)

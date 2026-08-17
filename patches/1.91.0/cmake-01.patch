@@ -1,0 +1,245 @@
+--- tools/cmake/include/BoostInstall.cmake.old	2026-01-08 11:26:12.013228000 +0100
++++ tools/cmake/include/BoostInstall.cmake	2026-01-08 13:59:42.824649975 +0100
+@@ -337,6 +337,22 @@
+     string(APPEND CONFIG_INSTALL_DIR "-static")
+   endif()
+ 
++  if(NOT CMAKE_VERSION VERSION_LESS 3.28)
++    get_target_property(INTERFACE_CXX_MODULE_SETS ${LIB} INTERFACE_CXX_MODULE_SETS)
++    if(INTERFACE_CXX_MODULE_SETS)
++      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_CXX_MODULE_SETS=${INTERFACE_CXX_MODULE_SETS}")
++      set(__INSTALL_CXX_MODULES FILE_SET ${INTERFACE_CXX_MODULE_SETS} DESTINATION ${CMAKE_INSTALL_DATADIR})
++    endif()
++  endif()
++
++  if(NOT CMAKE_VERSION VERSION_LESS 3.23)
++    get_target_property(INTERFACE_HEADER_SETS ${LIB} INTERFACE_HEADER_SETS)
++    if(INTERFACE_HEADER_SETS)
++      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_HEADER_SETS=${INTERFACE_HEADER_SETS}")
++      set(__INSTALL_HEADER_SETS FILE_SET ${INTERFACE_HEADER_SETS})
++    endif()
++  endif()
++
+   install(TARGETS ${LIB} EXPORT ${LIB}-targets
+     # explicit destination specification required for 3.13, 3.14 no longer needs it
+     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+@@ -344,8 +360,18 @@
+     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+     PRIVATE_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
++    # explicit needed if used starting with cmake v3.28
++    # XXX FILE_SET CXX_MODULES DESTINATION "${CMAKE_INSTALL_DATADIR}"
++    ${__INSTALL_CXX_MODULES}
++    # Any module files from C++ modules from PUBLIC sources in a file set of type CXX_MODULES will be installed to the given DESTINATION.
++    # FIXME: why does this silently not work here? CK
++    # XXX CXX_MODULES_BMI DESTINATION ${CONFIG_INSTALL_DIR}/bmi-${CMAKE_CXX_COMPILER_ID}_$<CONFIG>
++    # explicit needed if used starting with cmake v3.23
++    # XXX FILE_SET HEADERS
++    ${__INSTALL_HEADER_SETS}
+   )
+ 
++  # TODO(CK): what is this for?
+   export(TARGETS ${LIB} NAMESPACE Boost:: FILE export/${LIB}-targets.cmake)
+ 
+   if(MSVC)
+@@ -362,7 +388,9 @@
+     __boost_install_update_sources(${LIB} ${__EXTRA_DIRECTORY} ${__EXTRA_INSTALL_DIRECTORY})
+   endif()
+ 
+-  install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake)
++  install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake
++    # XXX CXX_MODULES_DIRECTORY .
++  )
+ 
+   set_target_properties(${LIB} PROPERTIES _boost_is_installed ON)
+ 
+--- tools/cmake/include/BoostRoot.cmake.old	2026-01-08 11:31:49.525898365 +0100
++++ tools/cmake/include/BoostRoot.cmake	2026-01-08 11:31:04.000000000 +0100
+@@ -123,7 +123,9 @@
+     set(BOOST_SKIP_INSTALL_RULES ON)
+   endif()
+ 
+-  set(BUILD_TESTING OFF)
++  if(NOT BOOST_BUILD_TESTING)
++    set(BUILD_TESTING OFF)
++  endif()
+ 
+ endif()
+ 
+@@ -303,6 +305,9 @@
+ 
+ endmacro()
+ 
++# C++20 modules
++option(BOOST_USE_MODULES "Build Boost as a collection of C++20 modules (unstable)" OFF)
++
+ #
+ 
+ file(GLOB __boost_libraries RELATIVE "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs" "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs/*/CMakeLists.txt" "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs/numeric/*/CMakeLists.txt")
+--- libs/serialization/CMakeLists.txt.old	2025-12-10 17:42:32.995666000 +0100
++++ libs/serialization/CMakeLists.txt	2026-01-08 18:20:48.675263056 +0100
+@@ -6,6 +6,8 @@
+ 
+ project(boost_serialization VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
++set(CMAKE_UNITY_BUILD OFF)
++
+ add_library(boost_serialization
+   src/archive_exception.cpp
+   src/basic_archive.cpp
+--- libs/any/CMakeLists.txt.old	2026-06-22 19:54:36.000000000 
++++ libs/any/CMakeLists.txt	2026-06-22 19:59:27.000000000 
+@@ -14,16 +14,17 @@
+     )
+ 
+     target_compile_features(boost_any PUBLIC cxx_std_20)
+     target_compile_definitions(boost_any PUBLIC BOOST_USE_MODULES)
+     set(__boost_cxx_standard ${CMAKE_CXX_STANDARD})
+     if (NOT __boost_cxx_standard)
+-        set(__boost_cxx_standard 20)
++        set(__boost_cxx_standard 23)
+     endif()
+     if (CMAKE_CXX_COMPILER_IMPORT_STD AND ${__boost_cxx_standard} IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_any PRIVATE BOOST_ANY_USE_STD_MODULE)
++        target_compile_definitions(boost_any PUBLIC BOOST_ANY_USE_STD_MODULE)
++        target_compile_features(boost_any PUBLIC cxx_std_${__boost_cxx_standard})
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+     endif()
+     set(__scope PUBLIC)
+ else()
+--- libs/lexical_cast/CMakeLists.txt.old	2026-06-23 12:16:39.262084782 +0200
++++ libs/lexical_cast/CMakeLists.txt	2026-06-23 12:33:54.908892502 +0200
+@@ -3,25 +3,30 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...4.0)
++cmake_minimum_required(VERSION 3.28...4.0)
+ 
+ project(boost_lexical_cast VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-
+-if (BOOST_USE_MODULES)
++if(BOOST_USE_MODULES)
+     add_library(boost_lexical_cast)
+     target_sources(boost_lexical_cast PUBLIC
+-        FILE_SET modules_public TYPE CXX_MODULES FILES
+-            ${CMAKE_CURRENT_LIST_DIR}/modules/boost_lexical_cast.cppm
++        FILE_SET modules_public
++            TYPE CXX_MODULES
++            FILES modules/boost_lexical_cast.cppm
+     )
+ 
+     target_compile_features(boost_lexical_cast PUBLIC cxx_std_20)
+     target_compile_definitions(boost_lexical_cast PUBLIC BOOST_USE_MODULES)
+-    if (CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_lexical_cast PRIVATE BOOST_LEXICAL_CAST_USE_STD_MODULE)
++    set(__boost_cxx_standard ${CMAKE_CXX_STANDARD})
++    if(NOT __boost_cxx_standard)
++        set(__boost_cxx_standard 23)
++    endif()
++    if(CMAKE_CXX_COMPILER_IMPORT_STD AND ${__boost_cxx_standard} IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_definitions(boost_lexical_cast PUBLIC BOOST_LEXICAL_CAST_USE_STD_MODULE)
++        target_compile_features(boost_lexical_cast PUBLIC cxx_std_${__boost_cxx_standard})
+         message(STATUS "Using `import std;`")
+     else()
+-        message(STATUS "`import std;` is not awailable")
++        message(STATUS "`import std;` is not available")
+     endif()
+     set(__scope PUBLIC)
+ else()
+@@ -43,4 +48,3 @@
+ if(BUILD_TESTING)
+   add_subdirectory(test)
+ endif()
+-
+--- libs/pfr/CMakeLists.txt.old	2026-06-23 12:57:13.166120620 +0200
++++ libs/pfr/CMakeLists.txt	2026-06-23 13:06:24.695676463 +0200
+@@ -4,20 +4,27 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...3.31)
++cmake_minimum_required(VERSION 3.28...4.0)
+ 
+ project(boost_pfr VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-if (BOOST_USE_MODULES)
++if(BOOST_USE_MODULES)
+     add_library(boost_pfr)
+     target_sources(boost_pfr PUBLIC
+-        FILE_SET modules_public TYPE CXX_MODULES FILES modules/boost_pfr.cppm
++        FILE_SET modules_public
++            TYPE CXX_MODULES
++            FILES modules/boost_pfr.cppm
+     )
+ 
+     target_compile_features(boost_pfr PUBLIC cxx_std_20)
+     target_compile_definitions(boost_pfr PUBLIC BOOST_USE_MODULES)
+-    if (CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_pfr PRIVATE BOOST_PFR_USE_STD_MODULE)
++    set(__boost_cxx_standard ${CMAKE_CXX_STANDARD})
++    if(NOT __boost_cxx_standard)
++        set(__boost_cxx_standard 23)
++    endif()
++    if(CMAKE_CXX_COMPILER_IMPORT_STD AND ${__boost_cxx_standard} IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_definitions(boost_pfr PUBLIC BOOST_PFR_USE_STD_MODULE)
++        target_compile_features(boost_pfr PUBLIC cxx_std_${__boost_cxx_standard})
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+@@ -31,11 +38,11 @@
+ add_library(Boost::pfr ALIAS boost_pfr)
+ 
+ enable_testing()
+-if (BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
++if(BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
+     add_subdirectory(test)
+ endif()
+ 
+-if (BOOST_USE_MODULES AND BUILD_TESTING)
++if(BOOST_USE_MODULES AND BUILD_TESTING)
+     add_executable(boost_pfr_module_usage modules/usage_sample.cpp)
+     target_link_libraries(boost_pfr_module_usage PRIVATE Boost::pfr)
+     add_test(NAME boost_pfr_module_usage COMMAND boost_pfr_module_usage)
+--- libs/type_index/CMakeLists.txt.old	2026-06-23 12:37:11.660738834 +0200
++++ libs/type_index/CMakeLists.txt	2026-06-23 12:44:32.000000000 +0200
+@@ -3,23 +3,30 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...3.31)
++cmake_minimum_required(VERSION 3.28...4.0)
+ 
+ project(boost_type_index VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-if (BOOST_USE_MODULES)
++if(BOOST_USE_MODULES)
+     add_library(boost_type_index)
+     target_sources(boost_type_index PUBLIC
+-        FILE_SET modules_public TYPE CXX_MODULES FILES modules/boost_type_index.cppm
++        FILE_SET modules_public
++            TYPE CXX_MODULES
++            FILES modules/boost_type_index.cppm
+     )
+ 
+     target_compile_features(boost_type_index PUBLIC cxx_std_20)
+     target_compile_definitions(boost_type_index PUBLIC BOOST_USE_MODULES)
+-    if (CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_type_index PRIVATE BOOST_TYPE_INDEX_USE_STD_MODULE)
++    set(__boost_cxx_standard ${CMAKE_CXX_STANDARD})
++    if(NOT __boost_cxx_standard)
++        set(__boost_cxx_standard 23)
++    endif()
++    if(CMAKE_CXX_COMPILER_IMPORT_STD AND ${__boost_cxx_standard} IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_definitions(boost_type_index PUBLIC BOOST_TYPE_INDEX_USE_STD_MODULE)
++        target_compile_features(boost_type_index PUBLIC cxx_std_${__boost_cxx_standard})
+         message(STATUS "Using `import std;`")
+     else()
+-        message(STATUS "`import std;` is not awailable")
++        message(STATUS "`import std;` is not available")
+     endif()
+     set(__scope PUBLIC)
+ else()
