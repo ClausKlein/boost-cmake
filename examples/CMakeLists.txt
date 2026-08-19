@@ -40,7 +40,17 @@ if(PROJECT_IS_TOP_LEVEL)
     block()
         set(BOOST_DEBUG YES)
         set(BOOST_VERBOSE YES)
-        list(APPEND BOOST_INCLUDE_LIBRARIES asio regex test)
+        list(
+            APPEND BOOST_INCLUDE_LIBRARIES
+            any
+            asio
+            conversion
+            lexical_cast
+            pfr
+            regex
+            type_index
+            test
+        )
 
         set(CMAKE_SKIP_INSTALL_RULES ON)
 
@@ -54,12 +64,20 @@ if(PROJECT_IS_TOP_LEVEL)
             URL
                 https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}-1/boost-${BOOST_VERSION}-1-cmake.7z
             URL_HASH
-                SHA256:158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b
+                SHA256=158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
-                1.92.0.1
-                COMPONENTS any asio regex unit_test_framework
+                ${BOOST_VERSION}
+                COMPONENTS
+                    any
+                    asio
+                    conversion
+                    lexical_cast
+                    pfr
+                    regex
+                    type_index
+                    unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
     endblock()
@@ -76,28 +94,40 @@ if(PROJECT_IS_TOP_LEVEL AND TARGET magic_enum::magic_enum)
     add_test(NAME BitManipulation COMMAND BitManipulation)
 endif()
 
-if(BOOST_USE_MODULES AND TARGET Boost::any)
-    add_executable(ExampleModuleAny any_module_usage_sample.cpp)
-    target_link_libraries(ExampleModuleAny PRIVATE Boost::any)
-    add_test(NAME ExampleModuleAny COMMAND ExampleModuleAny)
+function(add_boost_example example_name boost_target source_file)
+    if(NOT TARGET "${boost_target}")
+        return()
+    endif()
+
+    add_executable("${example_name}" "${source_file}")
+    target_link_libraries("${example_name}" PRIVATE "${boost_target}")
+    add_test(NAME "${example_name}" COMMAND "${example_name}")
+endfunction()
+
+if(BOOST_USE_MODULES)
+    add_boost_example(ExampleAny Boost::any any_module_usage_sample.cpp)
+    add_boost_example(
+        ExampleLexical_cast
+        Boost::lexical_cast
+        lexical_cast_usage_sample.cpp
+    )
+    add_boost_example(
+        ExampleConversion
+        Boost::conversion
+        conversion_usage_sample.cpp
+    )
+    add_boost_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
 endif()
 
-add_executable(ExampleAsio deferred.cpp)
-target_link_libraries(ExampleAsio PRIVATE Boost::asio)
-
-add_executable(ExampleRegex regex.cpp)
-target_link_libraries(ExampleRegex PRIVATE Boost::regex)
-
-if(TARGET Boost::unit_test_framework)
-    add_executable(ExampleTest const_string_test.cpp)
-    target_link_libraries(ExampleTest PRIVATE Boost::unit_test_framework)
-    add_test(NAME ExampleTest COMMAND ExampleTest)
-endif()
+add_boost_example(ExampleAsio Boost::asio deferred.cpp)
+add_boost_example(ExampleRegex Boost::regex regex.cpp)
+add_boost_example(
+    ExampleUnit_test_framework
+    Boost::unit_test_framework
+    const_string_test.cpp
+)
 
 # ---- Testing ----
-
-add_test(NAME ExampleAsio COMMAND ExampleAsio)
-add_test(NAME ExampleRegex COMMAND ExampleRegex)
 
 # test if the targets are findable from the build directory
 if(NOT PROJECT_IS_TOP_LEVEL)

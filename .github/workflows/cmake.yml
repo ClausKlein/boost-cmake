@@ -32,12 +32,13 @@ jobs:
     runs-on: ${{ matrix.os }} # -latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "^4.3.4"
+          cmakeVersion: "^4.4.2"
           ninjaVersion: "~1.13.0"
+
       - name: Setup MSVC
         if: startsWith(matrix.os, 'windows')
         uses: TheMrMilchmann/setup-msvc-dev@v4
@@ -50,18 +51,26 @@ jobs:
         with:
           compiler: llvm-22
 
+      - name: Build with CMake workflow
+        if: startsWith(matrix.os, 'macos')
+        run: make
+
       - name: Configure CMake
+        if: matrix.os != 'macos-latest'
         run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON
 
       - name: Build
+        if: matrix.os != 'macos-latest'
         # Build your program with the given configuration
         run: cmake --build --preset ${{env.BUILD_TYPE}}
 
       - name: Install
+        if: matrix.os != 'macos-latest'
         # Install the project artefacts to CMAKE_INSTALL_PREFIX
         run: cmake --install ${{github.workspace}}/build/${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
 
       - name: Test
+        if: matrix.os != 'macos-latest'
         working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
         # Execute tests defined by the CMake configuration, but needs to find_package(Boost)!
         run: ctest -C ${{env.BUILD_TYPE}}

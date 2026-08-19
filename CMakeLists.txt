@@ -2,9 +2,41 @@ cmake_minimum_required(VERSION 3.30...4.4)
 
 include(cmake/enable-experimental-import-std.cmake)
 
+# CMake 4.4 does not record MSVC as supporting CXX26. Compiler detection occurs
+# during project(), before CMAKE_CXX_COMPILER_ID is available, so temporarily
+# allow standard decay and restore the requested strict setting afterward.
+set(beman_bounds_test_restore_required OFF)
+if(
+    CMAKE_VERSION VERSION_LESS 4.5
+    AND CMAKE_CXX_STANDARD EQUAL 26
+    AND (NOT DEFINED CMAKE_CXX_STANDARD_REQUIRED OR CMAKE_CXX_STANDARD_REQUIRED)
+)
+    set(beman_bounds_test_restore_required ON)
+    set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+endif()
+
 # gersemi: off
 project(Boost-CMake LANGUAGES CXX VERSION 1.92.0.1)
 # gersemi: on
+
+# Work around missing MSVC C++26 bookkeeping in CMake through version 4.4.
+if(beman_bounds_test_restore_required)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+    else()
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    endif()
+endif()
+unset(beman_bounds_test_restore_required)
+
+# Neither of these two are technically needed, but they make the expectation clear
+if(NOT DEFINED CMAKE_CXX_EXTENSIONS)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
+
+if(NOT DEFINED CMAKE_CXX_STANDARD_REQUIRED)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 if(PROJECT_IS_TOP_LEVEL)
     option(BUILD_TESTING "Build the tests." OFF)
@@ -14,9 +46,7 @@ if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" OFF)
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        if(CMAKE_CXX_STANDARD GREATER_EQUAL 23)
-            set(CMAKE_CXX_MODULE_STD ON)
-        else()
+        if(NOT CMAKE_CXX_STANDARD GREATER_EQUAL 23)
             set(CMAKE_CXX_MODULE_STD OFF)
         endif()
     else()
@@ -79,18 +109,13 @@ endif()
 
 set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
-    any
     cobalt
-    contract # FIXME: deps on any! CK
+    dll # FIXME: use BOOST_USE_MODULES
     fiber
+    graph # TODO: takes to long! CK
     iostreams
-    graph # FIXME: deps on any! CK
     locale
     log
-    json
-    program_options # FIXME: deps on any! CK
-    property_map # FIXME: deps on any! CK
-    property_tree # FIXME: deps on any! CK
     timer
     wave
 )
@@ -104,14 +129,16 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         asio
         atomic
         beast # deps on type_index
+        boost_stacktrace # use BOOST_USE_MODULES
         chrono
         container
         contract # TODO: deps on any! CK
+        conversion # use BOOST_USE_MODULES
         coroutine
         exception
         filesystem # FIXME: Warnings with g++-15 on OSX! CK
         geometry # deps on any
-        graph # TODO: deps on any, serialization! CK
+        graph # FIXME: deps on any, and serialization! CK
         json
         lexical_cast # use BOOST_USE_MODULES
         math
@@ -125,7 +152,6 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         regex
         serialization
         signals2
-        boost_stacktrace # FIXME: BOOST_USE_MODULES
         system
         test
         thread
@@ -197,24 +223,26 @@ if(NOT Boost_POPULATED)
     message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 endif()
 
-# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
-#     find_package(Patch REQUIRED)
-#     message(STATUS "Patch found: ${Patch_EXECUTABLE}")
-#     if(
-#         EXISTS
-#             ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
-#     )
-#         message(STATUS "Patching Boost")
-#         execute_process(
-#             COMMAND
-#                 ${Patch_EXECUTABLE} -N -p0 -i
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
-#             WORKING_DIRECTORY ${BOOST_SOURCE}
-#             COMMAND_ECHO STDOUT
-#         )
-#         message(STATUS "Patching Boost - done")
-#     endif()
-# endif()
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
+    find_package(Patch REQUIRED)
+    message(STATUS "Patch found: ${Patch_EXECUTABLE}")
+    foreach(_FILE boost-lexical_cast-numeric_limits_Version1)
+        if(
+            EXISTS
+                ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/${_FILE}.patch
+        )
+            message(STATUS "Patching Boost")
+            execute_process(
+                COMMAND
+                    ${Patch_EXECUTABLE} -N -p0 -i
+                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/${_FILE}.patch
+                WORKING_DIRECTORY ${BOOST_SOURCE}
+                COMMAND_ECHO STDOUT
+            )
+            message(STATUS "Patching Boost - done")
+        endif()
+    endforeach()
+endif()
 
 include(cmake/CheckBoostVersion.cmake)
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
