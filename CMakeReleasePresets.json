@@ -26,7 +26,7 @@
         "CMAKE_CXX_EXTENSIONS": false,
         "CMAKE_CXX_STANDARD": "23",
         "CMAKE_CXX_STANDARD_REQUIRED": true,
-        "CMAKE_CXX_MODULE_STD": false,
+        "CMAKE_CXX_MODULE_STD": true,
         "CMAKE_DEBUG_POSTFIX": "-d",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CMAKE_INSTALL_MESSAGE": "LAZY",
