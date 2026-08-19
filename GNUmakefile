@@ -3,6 +3,7 @@
 .SUFFIXES:
 
 MAKEFLAGS+= --no-builtin-rules
+MAKEFLAGS+= --no-builtin-variables
 MAKEFLAGS+= --warn-undefined-variables
 
 export hostSystemName=$(shell uname)
@@ -32,9 +33,9 @@ else ifeq (${hostSystemName},Linux)
 endif
 
 #####################################################################
-.PHONY: all fresh build test install examples format clean distclean
+.PHONY: all fresh build ctest install examples format clean distclean
 
-all: test
+all: ctest ## Make all with cmake with verbose cusomized workflow preset
 
 # NOTE: Works only with clang v22.1.8 with different C++26 standard and cmake v4.4.x! CK
 examples: # XXX install
@@ -45,7 +46,8 @@ examples: # XXX install
 		--debug-find-pkg=Boost
 	ninja -C build test -v
 
-fresh: CMakePresets.json
+fresh: CMakePresets.json ## Make all with cmake Release workflow preset
+
 	cmake --workflow --preset Release --fresh
 
 compile_commands.json: build/Release/compile_commands.json
@@ -58,24 +60,36 @@ build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
 	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON} \
 	-D CMAKE_CXX_MODULE_STD=ON -D CMAKE_CXX_STANDARD=23
 
-build: compile_commands.json
+build: compile_commands.json ## Run build preset
 	cmake --build --preset Release
 
-test: install
+ctest: install ## Run ctest preset
 	ctest --preset Release
 
-install: build
+install: build ## Install to cmake config package
 	# XXX cmake --build --preset Release --target install
 	cmake --install build/Release --prefix=${HOME}/.local/
 
-clean:
+clean: ## Clean build tree
 	-cmake --build --preset Release --target clean
 
-distclean: # XXX clean
+distclean: ## Make a real clean
 	rm -rf build stagedir .cache compile_commands.json
 	-find . -name '*~' -delete
 
-format:
+format: ## Format cmake and source files
 	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i --no-warn-about-unknown-commands
 	git ls-files ::*.json ::*.cpp ::*.hpp | xargs clang-format -i
-	# git clang-format master
+
+# Helper targets
+.PHONY: env info
+
+env: ## Show env
+	$(foreach v, $(.VARIABLES), $(info $(v) = $($(v))))
+
+info: ## Show this help.
+	@awk 'BEGIN {FS = ":.*?## "} /^[.a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+
+# Anything we don't know how to build will use this rule.
+% ::
+	ninja -C build/Release $(@)
