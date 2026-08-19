@@ -125,8 +125,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
 endif()
 if(MSVC)
-    # FIXME: any fails to build with modules! CK
-    list(APPEND BOOST_EXCLUDE_LIBRARIES any contract program_options)
+    # FIXME: any, and stacktrace fails to build with modules on Windows! CK
+    list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
 endif()
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
