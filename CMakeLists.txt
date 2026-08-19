@@ -230,6 +230,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
         _FILE
         boost-lexical_cast-numeric_limits
         boost-stacktrace-addr2line_impls
+        boost-pfr-io
     )
         if(
             EXISTS
