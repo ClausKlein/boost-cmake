@@ -180,11 +180,7 @@ if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     )
 endif()
 if(FETCHCONTENT_SOURCE_DIR_BOOST)
-    set(CPM_Boost_SOURCE
-        ${FETCHCONTENT_SOURCE_DIR_BOOST}
-        CACHE PATH
-        "Manual override"
-    )
+    set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "Manual override")
 endif()
 
 set(BOOST_VERSION 1.92.0)
@@ -202,14 +198,15 @@ set(BOOST_URL_SHA256
 
 # ---- Add Boost source tar archive via FetchContent ----
 include(FetchContent)
+set(BOOST_PATCH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}")
+set(BOOST_PATCHES "${BOOST_PATCH_DIR}/TheBigBoost.patch")
+
 FetchContent_Declare(
     Boost
     URL ${BOOST_URL}
     URL_HASH SHA256=${BOOST_URL_SHA256}
     DOWNLOAD_EXTRACT_TIMESTAMP ON
-    PATCH_COMMAND
-        git apply -p0
-        ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/cmake-01.patch
+    PATCH_COMMAND git apply -p0 ${BOOST_PATCHES}
     SYSTEM
     ${EXCLUDE_FROM_ALL}
 )
@@ -223,42 +220,12 @@ if(NOT Boost_POPULATED)
     message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
-    find_package(Patch REQUIRED)
-    message(STATUS "Patch found: ${Patch_EXECUTABLE}")
-    foreach(
-        _FILE
-        boost-lexical_cast-numeric_limits
-        boost-stacktrace-addr2line_impls
-        boost-pfr-io
-    )
-        if(
-            EXISTS
-                ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/${_FILE}.patch
-        )
-            message(STATUS "Patching Boost")
-            execute_process(
-                COMMAND
-                    ${Patch_EXECUTABLE} -N -p0 -i
-                    ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/${_FILE}.patch
-                WORKING_DIRECTORY ${BOOST_SOURCE}
-                COMMAND_ECHO STDOUT
-            )
-            message(STATUS "Patching Boost - done")
-        endif()
-    endforeach()
-endif()
-
 include(cmake/CheckBoostVersion.cmake)
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
 
 include(cmake/ccache.cmake)
 
-configure_file(
-    cmake/ccache.cmake
-    ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake
-    COPYONLY
-)
+configure_file(cmake/ccache.cmake ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake COPYONLY)
 
 list(APPEND CMAKE_MODULE_PATH ${BOOST_SOURCE}/tools/cmake/include)
 include(BoostTestJamfile OPTIONAL RESULT_VARIABLE HAVE_BOOST_TEST)

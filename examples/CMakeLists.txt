@@ -62,8 +62,7 @@ if(PROJECT_IS_TOP_LEVEL)
             Boost
             URL
                 https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}-1/boost-${BOOST_VERSION}-1-cmake.7z
-            URL_HASH
-                SHA256=158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b
+            URL_HASH SHA256=158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b
             EXCLUDE_FROM_ALL
             SYSTEM
             FIND_PACKAGE_ARGS
@@ -106,27 +105,20 @@ endfunction()
 
 if(BOOST_USE_MODULES)
     add_boost_example(ExampleAny Boost::any any_module_usage_sample.cpp)
-    add_boost_example(
-        ExampleLexical_cast
-        Boost::lexical_cast
-        lexical_cast_usage_sample.cpp
-    )
-    add_boost_example(
-        ExampleConversion
-        Boost::conversion
-        conversion_usage_sample.cpp
-    )
-    add_boost_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
+    add_boost_example(ExampleConversion Boost::conversion conversion_usage_sample.cpp)
+    add_boost_example(ExampleLexical_cast Boost::lexical_cast lexical_cast_usage_sample.cpp)
     add_boost_example(ExampleStacktrace Boost::stacktrace stacktrace_usage_sample.cpp)
+    if(APPLE)
+        add_boost_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
+    endif()
 endif()
 
 add_boost_example(ExampleAsio Boost::asio deferred.cpp)
 add_boost_example(ExampleRegex Boost::regex regex.cpp)
-add_boost_example(
-    ExampleUnit_test_framework
-    Boost::unit_test_framework
-    const_string_test.cpp
-)
+
+if(APPLE)
+    add_boost_example(ExampleUnit_test_framework Boost::unit_test_framework const_string_test.cpp)
+endif()
 
 # ---- Testing ----
 
@@ -135,18 +127,16 @@ if(NOT PROJECT_IS_TOP_LEVEL)
     add_test(
         NAME find-package-test
         COMMAND
-            ${CMAKE_CTEST_COMMAND}
-            # --verbose
-            --output-on-failure -C $<CONFIG> --build-and-test
-            "${CMAKE_CURRENT_SOURCE_DIR}"
-            "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" --build-generator
-            ${CMAKE_GENERATOR} --build-makeprogram ${CMAKE_MAKE_PROGRAM}
+            ${CMAKE_CTEST_COMMAND} --output-on-failure -C $<CONFIG> #
+            --build-and-test "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" #
+            --build-generator ${CMAKE_GENERATOR} #
+            --build-makeprogram ${CMAKE_MAKE_PROGRAM} #
             --build-options "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DCMAKE_CXX_MODULE_STD=${CMAKE_CXX_MODULE_STD}"
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
             "-DCMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON}"
-            "-DCMAKE_BUILD_TYPE=$<CONFIG>"
-            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DCMAKE_BUILD_TYPE=$<CONFIG>" "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
             "-DBOOST_USE_MODULES=${BOOST_USE_MODULES}"
     )
 endif()

@@ -33,7 +33,7 @@ else ifeq (${hostSystemName},Linux)
 endif
 
 #####################################################################
-.PHONY: all fresh build ctest install examples format clean distclean
+.PHONY: all fresh disabled_modules build ctest install examples format clean distclean
 
 all: ctest ## Make all with cmake with verbose cusomized workflow preset
 
@@ -73,12 +73,16 @@ install: build ## Install to cmake config package
 clean: ## Clean build tree
 	-cmake --build --preset Release --target clean
 
+disabled_modules: CXX=c++
+disabled_modules: ## Build w/o modules with default compiler
+	cmake --preset Release -D CMAKE_CXX_SCAN_FOR_MODULES=OFF -D BOOST_USE_MODULES=OFF
+
 distclean: ## Make a real clean
 	rm -rf build stagedir .cache compile_commands.json
 	-find . -name '*~' -delete
 
 format: ## Format cmake and source files
-	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i --no-warn-about-unknown-commands
+	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i --no-warn-about-unknown-commands --line-length 98
 	git ls-files ::*.json ::*.cpp ::*.hpp | xargs clang-format -i
 
 # Helper targets
