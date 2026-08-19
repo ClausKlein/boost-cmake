@@ -112,13 +112,22 @@ set(BOOST_EXCLUDE_LIBRARIES
     cobalt
     dll # FIXME: use BOOST_USE_MODULES
     fiber
-    graph # TODO: takes to long! CK
+    graph # TODO: takes to long to build! CK
     iostreams
     locale
     log
     timer
     wave
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # FIXME: use private modules! CK
+    list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
+endif()
+if(MSVC)
+    # FIXME: any fails to build with modules! CK
+    list(APPEND BOOST_EXCLUDE_LIBRARIES any contract program_options)
+endif()
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
     # NOTE: Compiled libs without warnings OSX with clang v22.1.7! CK
@@ -129,14 +138,14 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         asio
         atomic
         beast # deps on type_index
-        boost_stacktrace # use BOOST_USE_MODULES
+        stacktrace # use BOOST_USE_MODULES
         chrono
         container
         contract # TODO: deps on any! CK
         conversion # use BOOST_USE_MODULES
         coroutine
         exception
-        filesystem # FIXME: Warnings with g++-15 on OSX! CK
+        filesystem # FIXME: Warnings with g++-16 on OSX! CK
         geometry # deps on any
         graph # FIXME: deps on any, and serialization! CK
         json
@@ -147,8 +156,8 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         pfr # use BOOST_USE_MODULES
         process # deps on type_index
         program_options # TODO: deps on any! CK
-        property_map # TODO: deps on any! CK
-        property_tree # TODO: deps on any! CK
+        property_map # interface, but deps on any! CK
+        property_tree # interface, but deps on any! CK
         regex
         serialization
         signals2
