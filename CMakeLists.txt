@@ -226,7 +226,11 @@ endif()
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION})
     find_package(Patch REQUIRED)
     message(STATUS "Patch found: ${Patch_EXECUTABLE}")
-    foreach(_FILE boost-lexical_cast-numeric_limits_Version1)
+    foreach(
+        _FILE
+        boost-lexical_cast-numeric_limits
+        boost-stacktrace-addr2line_impls
+    )
         if(
             EXISTS
                 ${CMAKE_CURRENT_SOURCE_DIR}/patches/${BOOST_VERSION}/${_FILE}.patch

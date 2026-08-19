@@ -28,9 +28,7 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        if(CMAKE_CXX_STANDARD GREATER_EQUAL 23)
-            set(CMAKE_CXX_MODULE_STD ON)
-        else()
+        if(NOT CMAKE_CXX_STANDARD GREATER_EQUAL 23)
             set(CMAKE_CXX_MODULE_STD OFF)
         endif()
     else()
@@ -49,6 +47,7 @@ if(PROJECT_IS_TOP_LEVEL)
             pfr
             regex
             type_index
+            stacktrace
             test
         )
 
@@ -77,6 +76,7 @@ if(PROJECT_IS_TOP_LEVEL)
                     pfr
                     regex
                     type_index
+                    stacktrace
                     unit_test_framework
         )
         FetchContent_MakeAvailable(Boost)
@@ -117,6 +117,7 @@ if(BOOST_USE_MODULES)
         conversion_usage_sample.cpp
     )
     add_boost_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
+    add_boost_example(ExampleStacktrace Boost::stacktrace stacktrace_usage_sample.cpp)
 endif()
 
 add_boost_example(ExampleAsio Boost::asio deferred.cpp)
