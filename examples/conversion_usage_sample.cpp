@@ -14,20 +14,20 @@ namespace {
 
   struct Base {
     virtual ~Base() = default;
-    virtual std::string name() const {
+    [[nodiscard]] virtual auto name() const -> std::string {
       return "base";
     }
   };
 
   struct Derived : Base {
-    std::string name() const override {
+    [[nodiscard]] auto name() const -> std::string override {
       return "derived";
     }
   };
 
 }  // namespace
 
-int main() {
+auto main() -> int {
   std::cerr << boost::implicit_cast<long>(42) << '\n';
 
   std::unique_ptr<Base> base = std::make_unique<Derived>();

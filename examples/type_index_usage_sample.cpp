@@ -11,7 +11,7 @@
 
 import boost.type_index;
 
-int main() {
+auto main() -> int {
   std::cout << boost::typeindex::type_id_with_cvr<const int>();  // Outputs: const int
 }
 //]

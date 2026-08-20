@@ -38,13 +38,14 @@ else ifeq (${hostSystemName},Linux)
   export LLVM_DIR:=/usr/lib/llvm-22
   export PATH:=${LLVM_DIR}/bin:${PATH}
   export CXX:=clang++-22
+  export CXXFLAGS:= -stdlib=libc++ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 
   export PATH:=${HOME}/.local/bin:${PATH}
   export LANG:=C.UTF-8
   export LC_ALL:=C.UTF-8
 endif
 
-IMAGE?=ghcr.io/bemanproject/infra-containers-clang:trunk
+IMAGE?=ghcr.io/bemanproject/infra-containers-clang:latest
 
 #####################################################################
 .PHONY: all fresh disabled_modules build ctest install examples format clean distclean

@@ -8,7 +8,7 @@
 #include <boost/config.hpp>
 #include <iostream>
 
-#if defined(STACKTRACE_MODULE)
+#ifdef STACKTRACE_MODULE
 import STACKTRACE_MODULE;
 #else
 import boost.stacktrace;
@@ -27,7 +27,7 @@ namespace {
 
 }  // namespace
 
-int main() {
+auto main() -> int {
   bar();
 
   return 0;

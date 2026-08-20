@@ -9,7 +9,7 @@
 //[lexical_cast_module_example
 import boost.lexical_cast;
 
-int main() {
+auto main() -> int {
   return boost::lexical_cast<int>("0");
 }
 //]
