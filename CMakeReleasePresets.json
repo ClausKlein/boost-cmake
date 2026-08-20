@@ -1,10 +1,5 @@
 {
-  "version": 7,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 27,
-    "patch": 0
-  },
+  "version": 12,
   "configurePresets": [
     {
       "name": "Release",
@@ -19,14 +14,14 @@
           "value": "${sourceDir}/stagedir"
         },
         "BOOST_BUILD_TESTING": true,
-        "BOOST_STANDALONE": true,
+        "BOOST_PROCESS_USE_STD_FS": true,
         "BOOST_USE_MODULES": true,
         "BUILD_SHARED_LIBS": true,
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_EXTENSIONS": false,
+        "CMAKE_CXX_MODULE_STD": false,
         "CMAKE_CXX_STANDARD": "23",
         "CMAKE_CXX_STANDARD_REQUIRED": true,
-        "CMAKE_CXX_MODULE_STD": false,
         "CMAKE_DEBUG_POSTFIX": "-d",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CMAKE_INSTALL_MESSAGE": "LAZY",
@@ -38,14 +33,14 @@
         "PATH": "$env{HOME}/.local/bin${pathListSep}$penv{PATH}"
       },
       "warnings": {
-        "dev": false,
+        "author": false,
         "deprecated": true,
         "uninitialized": true
       },
       "trace": {
         "mode": "expand",
         "source": [
-          "BoostRootNO.cmake",
+          "BoostRoot-NO!.cmake",
           "BoostTestJamfile.cmake",
           "BoostTest.cmake"
         ]
@@ -55,26 +50,22 @@
   "buildPresets": [
     {
       "name": "Release",
+      "configuration": "Release",
       "configurePreset": "Release"
     },
     {
       "name": "install",
+      "configuration": "Release",
       "configurePreset": "Release",
       "targets": [
         "install"
-      ]
-    },
-    {
-      "name": "format",
-      "configurePreset": "Release",
-      "targets": [
-        "fix-cmake-format"
       ]
     }
   ],
   "testPresets": [
     {
       "name": "Release",
+      "configuration": "Release",
       "configurePreset": "Release",
       "output": {
         "outputOnFailure": true

@@ -24,7 +24,7 @@ repos:
 
   # CMake linting and formatting
   # - repo: https://github.com/BlankSpruce/gersemi
-  #   rev: 0.28.0
+  #   rev: 0.28.1
   #   hooks:
   #     - id: gersemi
   #       args: ["--no-warn-about-unknown-commands", "--in-place"]

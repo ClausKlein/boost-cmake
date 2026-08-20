@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
 # Standard stuff
 
 .SUFFIXES:
@@ -5,6 +7,8 @@
 MAKEFLAGS+= --no-builtin-rules
 MAKEFLAGS+= --no-builtin-variables
 MAKEFLAGS+= --warn-undefined-variables
+
+#####################################################################
 
 export CMAKE_CONFIG_TYPE=Release
 export CMAKE_CONFIGURATION_TYPES="Release;Debug"
@@ -14,33 +18,19 @@ export CMAKE_INSTALL_PREFIX="${HOME}/.local"
 export CMAKE_PREFIX_PATH="${HOME}/.local"
 export CTEST_OUTPUT_ON_FAILURE=YES
 
+#####################################################################
+
 export hostSystemName:=$(shell uname)
+export PATH:=${HOME}/.local/bin:${PATH}
 
-ifeq (${hostSystemName},Darwin)
-  export LLVM_PREFIX:=$(shell brew --prefix llvm)
-  export LLVM_DIR:=$(shell realpath ${LLVM_PREFIX})
-  export PATH:=${LLVM_DIR}/bin:${PATH}
-
-  export CMAKE_CXX_STDLIB_MODULES_JSON:=${LLVM_DIR}/lib/c++/libc++.modules.json
-  export CXX:=clang++
-  export LDFLAGS:=-L$(LLVM_DIR)/lib/c++ -lc++abi # NO! -lc++ -lc++experimental
+ifeq ($(origin CXX),default)
+  export CXX:= clang++
+  export CC:= clang
   export GCOV:="llvm-cov gcov"
+  # export CXXFLAGS:= -stdlib=libc++ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
+endif
 
-  ### TODO: to test g++-16:
-  export GCC_PREFIX:=$(shell brew --prefix gcc)
-  export GCC_DIR:=$(shell realpath ${GCC_PREFIX})
-
-  # export CMAKE_CXX_STDLIB_MODULES_JSON:=${GCC_DIR}/lib/gcc/current/libstdc++.modules.json
-  # export CXX:=g++-16
-  # export CXXFLAGS:=-stdlib=libstdc++
-  # export GCOV:="gcov"
-else ifeq (${hostSystemName},Linux)
-  export LLVM_DIR:=/usr/lib/llvm-22
-  export PATH:=${LLVM_DIR}/bin:${PATH}
-  export CXX:=clang++-22
-  export CXXFLAGS:= -stdlib=libc++ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
-
-  export PATH:=${HOME}/.local/bin:${PATH}
+ifeq (${hostSystemName},Linux)
   export LANG:=C.UTF-8
   export LC_ALL:=C.UTF-8
 endif
@@ -48,6 +38,7 @@ endif
 IMAGE?=ghcr.io/bemanproject/infra-containers-clang:latest
 
 #####################################################################
+
 .PHONY: all fresh disabled_modules build ctest install examples format clean distclean
 
 all: ctest ## Make all with cmake with verbose cusomized workflow preset
@@ -82,7 +73,7 @@ ctest: install ## Run ctest preset
 
 install: build ## Install the cmake config package
 	# XXX cmake --build --preset Release --target install
-	cmake --install build/Release --prefix=${HOME}/.local/
+	cmake --install build/Release --config Release --prefix=${HOME}/.local/
 
 clean: ## Clean build tree
 	-cmake --build --preset Release --target clean
@@ -91,13 +82,13 @@ disabled_modules: CXX=c++
 disabled_modules: ## Build w/o modules with default host compiler
 	cmake --preset Release -D CMAKE_CXX_SCAN_FOR_MODULES=OFF -D BOOST_USE_MODULES=OFF
 
-distclean: ## Make a real clean
+distclean: ## Make it really clean
 	rm -rf build stagedir .cache compile_commands.json
 	-find . -name '*~' -delete
 
 format: ## Format cmake and source files
 	git ls-files ::*.cmake ::*CMakeLists.txt | xargs gersemi -i --no-warn-about-unknown-commands --line-length 98
-	git ls-files ::*.json ::*.cpp ::*.hpp | xargs clang-format -i
+	-git ls-files ::*.json ::*.cpp ::*.hpp | xargs clang-format -i
 
 # Helper targets
 .PHONY: env info dockerbuild

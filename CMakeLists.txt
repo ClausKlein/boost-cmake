@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30...4.4)
 
-include(cmake/enable-experimental-import-std.cmake)
+include(cmake/prelude.cmake)
 
 # CMake 4.4 does not record MSVC as supporting CXX26. Compiler detection occurs
 # during project(), before CMAKE_CXX_COMPILER_ID is available, so temporarily
@@ -245,10 +245,13 @@ endif()
 #############################################################
 find_package(Threads)
 
-# Compilation options required by all platforms
+# Compilation options required for all platforms
 target_compile_definitions(
     boost_headers
-    INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT> BOOST_ASIO_NO_DEPRECATED
+    INTERFACE
+        $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT>
+        BOOST_ASIO_NO_DEPRECATED
+        BOOST_TEST_HEADERS_ONLY
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
 #############################################################
@@ -268,5 +271,4 @@ endif()
 set(CPACK_GENERATOR "TGZ")
 include(CPack)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(AddUninstallTarget)

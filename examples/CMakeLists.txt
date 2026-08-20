@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30...4.4)
 
-include(../cmake/enable-experimental-import-std.cmake)
+include(../cmake/prelude.cmake)
 
 # test boost-cmake 1.92.0.2
 project(BoostExamples LANGUAGES CXX)
