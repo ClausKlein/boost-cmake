@@ -6,7 +6,15 @@ MAKEFLAGS+= --no-builtin-rules
 MAKEFLAGS+= --no-builtin-variables
 MAKEFLAGS+= --warn-undefined-variables
 
-export hostSystemName=$(shell uname)
+export CMAKE_CONFIG_TYPE=Release
+export CMAKE_CONFIGURATION_TYPES="Release;Debug"
+export CMAKE_EXPORT_COMPILE_COMMANDS=YES
+export CMAKE_GENERATOR=Ninja
+export CMAKE_INSTALL_PREFIX="${HOME}/.local"
+export CMAKE_PREFIX_PATH="${HOME}/.local"
+export CTEST_OUTPUT_ON_FAILURE=YES
+
+export hostSystemName:=$(shell uname)
 
 ifeq (${hostSystemName},Darwin)
   export LLVM_PREFIX:=$(shell brew --prefix llvm)
@@ -27,10 +35,16 @@ ifeq (${hostSystemName},Darwin)
   # export CXXFLAGS:=-stdlib=libstdc++
   # export GCOV:="gcov"
 else ifeq (${hostSystemName},Linux)
-  export LLVM_DIR:=/usr/lib/llvm-20
+  export LLVM_DIR:=/usr/lib/llvm-22
   export PATH:=${LLVM_DIR}/bin:${PATH}
-  export CXX:=clang++-20
+  export CXX:=clang++-22
+
+  export PATH:=${HOME}/.local/bin:${PATH}
+  export LANG:=C.UTF-8
+  export LC_ALL:=C.UTF-8
 endif
+
+IMAGE?=ghcr.io/bemanproject/infra-containers-clang:trunk
 
 #####################################################################
 .PHONY: all fresh disabled_modules build ctest install examples format clean distclean
@@ -47,10 +61,9 @@ examples: # XXX install
 	ninja -C build test -v
 
 fresh: CMakePresets.json ## Make all with cmake Release workflow preset
-
 	cmake --workflow --preset Release --fresh
 
-compile_commands.json: build/Release/compile_commands.json
+compile_commands.json: build/Release/compile_commands.json ## Configure cmake preset in verbose mode
 	ln -sf $< .
 
 # NOTE: Works only with clang v22.1.8 with this arguments and cmake v4.4.x! CK
@@ -66,7 +79,7 @@ build: compile_commands.json ## Run build preset
 ctest: install ## Run ctest preset
 	ctest --preset Release
 
-install: build ## Install to cmake config package
+install: build ## Install the cmake config package
 	# XXX cmake --build --preset Release --target install
 	cmake --install build/Release --prefix=${HOME}/.local/
 
@@ -74,7 +87,7 @@ clean: ## Clean build tree
 	-cmake --build --preset Release --target clean
 
 disabled_modules: CXX=c++
-disabled_modules: ## Build w/o modules with default compiler
+disabled_modules: ## Build w/o modules with default host compiler
 	cmake --preset Release -D CMAKE_CXX_SCAN_FOR_MODULES=OFF -D BOOST_USE_MODULES=OFF
 
 distclean: ## Make a real clean
@@ -86,7 +99,10 @@ format: ## Format cmake and source files
 	git ls-files ::*.json ::*.cpp ::*.hpp | xargs clang-format -i
 
 # Helper targets
-.PHONY: env info
+.PHONY: env info dockerbuild
+
+dockerbuild: ## Start docker image interactive
+	docker run -it -v $(CURDIR):/src $(IMAGE)
 
 env: ## Show env
 	$(foreach v, $(.VARIABLES), $(info $(v) = $($(v))))

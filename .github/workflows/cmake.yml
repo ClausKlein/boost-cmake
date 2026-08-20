@@ -51,26 +51,38 @@ jobs:
         with:
           compiler: llvm-22
 
-      - name: Build with CMake workflow
-        if: startsWith(matrix.os, 'macos')
-        run: make
+      - name: Configure CMake custom preset
+        if: matrix.os != 'windows-latest'
+        run: make compile_commands.json
+
+      - name: Build CMake custom preset
+        if: matrix.os != 'windows-latest'
+        run: make build
+
+      - name: Install custom project
+        if: matrix.os != 'windows-latest'
+        run: make install
+
+      - name: Test custom examples
+        if: matrix.os != 'windows-latest'
+        run: make ctest
 
       - name: Configure CMake
-        if: matrix.os != 'macos-latest'
+        if: startsWith(matrix.os, 'windows')
         run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON
 
       - name: Build
-        if: matrix.os != 'macos-latest'
+        if: startsWith(matrix.os, 'windows')
         # Build your program with the given configuration
         run: cmake --build --preset ${{env.BUILD_TYPE}}
 
       - name: Install
-        if: matrix.os != 'macos-latest'
+        if: startsWith(matrix.os, 'windows')
         # Install the project artefacts to CMAKE_INSTALL_PREFIX
         run: cmake --install ${{github.workspace}}/build/${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
 
       - name: Test
-        if: matrix.os != 'macos-latest'
+        if: startsWith(matrix.os, 'windows')
         working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
         # Execute tests defined by the CMake configuration, but needs to find_package(Boost)!
         run: ctest -C ${{env.BUILD_TYPE}}
