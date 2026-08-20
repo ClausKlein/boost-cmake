@@ -1,9 +1,10 @@
---- tools/cmake/include/BoostInstall.cmake.old	2026-01-08 11:26:12.013228000 +0100
-+++ tools/cmake/include/BoostInstall.cmake	2026-01-08 13:59:42.824649975 +0100
-@@ -337,6 +337,22 @@
+--- tools/cmake/include/BoostInstall.cmake.old	2026-08-20 18:18:48.000000000 +0200
++++ tools/cmake/include/BoostInstall.cmake	2026-08-20 17:33:15.481391894 +0200
+@@ -337,6 +337,24 @@
      string(APPEND CONFIG_INSTALL_DIR "-static")
    endif()
  
++  set(__INSTALL_CXX_MODULES)
 +  if(NOT CMAKE_VERSION VERSION_LESS 3.28)
 +    get_target_property(INTERFACE_CXX_MODULE_SETS ${LIB} INTERFACE_CXX_MODULE_SETS)
 +    if(INTERFACE_CXX_MODULE_SETS)
@@ -12,6 +13,7 @@
 +    endif()
 +  endif()
 +
++  set(__INSTALL_HEADER_SETS)
 +  if(NOT CMAKE_VERSION VERSION_LESS 3.23)
 +    get_target_property(INTERFACE_HEADER_SETS ${LIB} INTERFACE_HEADER_SETS)
 +    if(INTERFACE_HEADER_SETS)
@@ -23,7 +25,7 @@
    install(TARGETS ${LIB} EXPORT ${LIB}-targets
      # explicit destination specification required for 3.13, 3.14 no longer needs it
      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-@@ -344,8 +360,18 @@
+@@ -344,8 +362,18 @@
      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
      PRIVATE_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
      PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
@@ -42,7 +44,7 @@
    export(TARGETS ${LIB} NAMESPACE Boost:: FILE export/${LIB}-targets.cmake)
  
    if(MSVC)
-@@ -362,7 +388,9 @@
+@@ -362,7 +390,9 @@
      __boost_install_update_sources(${LIB} ${__EXTRA_DIRECTORY} ${__EXTRA_INSTALL_DIRECTORY})
    endif()
  
@@ -53,8 +55,8 @@
  
    set_target_properties(${LIB} PROPERTIES _boost_is_installed ON)
  
---- tools/cmake/include/BoostRoot.cmake.old	2026-01-08 11:31:49.525898365 +0100
-+++ tools/cmake/include/BoostRoot.cmake	2026-01-08 11:31:04.000000000 +0100
+--- tools/cmake/include/BoostRoot.cmake.old	2026-08-20 18:44:31.506539647 +0200
++++ tools/cmake/include/BoostRoot.cmake	2026-08-17 16:46:20.302542033 +0200
 @@ -123,7 +123,9 @@
      set(BOOST_SKIP_INSTALL_RULES ON)
    endif()
@@ -76,8 +78,8 @@
  #
  
  file(GLOB __boost_libraries RELATIVE "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs" "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs/*/CMakeLists.txt" "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs/numeric/*/CMakeLists.txt")
---- libs/serialization/CMakeLists.txt.old	2025-12-10 17:42:32.995666000 +0100
-+++ libs/serialization/CMakeLists.txt	2026-01-08 18:20:48.675263056 +0100
+--- libs/serialization/CMakeLists.txt.old	2026-08-19 11:08:14.000000000 +0200
++++ libs/serialization/CMakeLists.txt	2026-08-17 16:46:20.302748163 +0200
 @@ -6,6 +6,8 @@
  
  project(boost_serialization VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
@@ -225,7 +227,7 @@
      else()
          message(STATUS "`import std;` is not available")
 --- libs/pfr/CMakeLists.txt.old	2026-08-18 19:29:18.000000000 +0200
-+++ libs/pfr/CMakeLists.txt	2026-08-19 08:54:00.413897203 +0200
++++ libs/pfr/CMakeLists.txt	2026-08-19 10:59:59.579538359 +0200
 @@ -4,20 +4,26 @@
  # Distributed under the Boost Software License, Version 1.0.
  # https://www.boost.org/LICENSE_1_0.txt
