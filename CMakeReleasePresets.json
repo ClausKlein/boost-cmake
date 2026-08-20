@@ -14,7 +14,9 @@
           "value": "${sourceDir}/stagedir"
         },
         "BOOST_BUILD_TESTING": true,
+        "BOOST_CONTAINER_HEADER_ONLY": true,
         "BOOST_PROCESS_USE_STD_FS": true,
+        "BOOST_TEST_HEADERS_ONLY": true,
         "BOOST_USE_MODULES": true,
         "BUILD_SHARED_LIBS": true,
         "CMAKE_BUILD_TYPE": "Release",

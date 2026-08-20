@@ -20,7 +20,6 @@ export CTEST_OUTPUT_ON_FAILURE=YES
 
 #####################################################################
 
-export hostSystemName:=$(shell uname)
 export PATH:=${HOME}/.local/bin:${PATH}
 
 ifeq ($(origin CXX),default)
@@ -30,7 +29,8 @@ ifeq ($(origin CXX),default)
   # export CXXFLAGS:= -stdlib=libc++ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 endif
 
-export LLVM_VERSION:=$(shell ${CXX} -dumpversion)
+# CXX_VERSION:=$(shell ${CXX} -dumpversion)
+hostSystemName:=$(shell uname)
 
 ifeq (${hostSystemName},Linux)
   export LANG:=C.UTF-8

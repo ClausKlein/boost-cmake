@@ -185,11 +185,11 @@ if(EXISTS "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}")
     set(FETCHCONTENT_SOURCE_DIR_BOOST
         "$ENV{CPM_SOURCE_CACHE}/${BOOST_SUBDIR}"
         CACHE PATH
-        "Boost source DIR"
+        "Boost cached source DIR"
     )
 endif()
 if(FETCHCONTENT_SOURCE_DIR_BOOST)
-    set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "Manual override")
+    set(CPM_Boost_SOURCE ${FETCHCONTENT_SOURCE_DIR_BOOST} CACHE PATH "CPM Manual override")
 endif()
 
 set(BOOST_VERSION 1.92.0)
@@ -227,6 +227,12 @@ if(NOT Boost_POPULATED)
     message(STATUS "Fetching Boost - done")
     set(BOOST_SOURCE ${Boost_SOURCE_DIR})
     message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
+    set(FETCHCONTENT_SOURCE_DIR_BOOST
+        "${Boost_SOURCE_DIR}"
+        CACHE PATH
+        "Boost patched source DIR"
+        FORCE
+    )
 endif()
 
 include(cmake/CheckBoostVersion.cmake)
@@ -248,10 +254,7 @@ find_package(Threads)
 # Compilation options required for all platforms
 target_compile_definitions(
     boost_headers
-    INTERFACE
-        $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT>
-        BOOST_ASIO_NO_DEPRECATED
-        BOOST_TEST_HEADERS_ONLY
+    INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT> BOOST_ASIO_NO_DEPRECATED
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
 #############################################################
