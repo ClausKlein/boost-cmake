@@ -30,6 +30,8 @@ ifeq ($(origin CXX),default)
   # export CXXFLAGS:= -stdlib=libc++ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 endif
 
+export LLVM_VERSION:=$(shell ${CXX} -dumpversion)
+
 ifeq (${hostSystemName},Linux)
   export LANG:=C.UTF-8
   export LC_ALL:=C.UTF-8
@@ -46,7 +48,6 @@ all: ctest ## Make all with cmake with verbose cusomized workflow preset
 # NOTE: Works only with clang v22.1.8 with different C++26 standard and cmake v4.4.x! CK
 examples: # XXX install
 	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh \
-	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON} \
 	-D CMAKE_CXX_MODULE_STD=ON -D CMAKE_CXX_STANDARD=26 \
 	-D BOOST_USE_MODULES=ON \
 		--debug-find-pkg=Boost
@@ -60,10 +61,29 @@ compile_commands.json: build/Release/compile_commands.json ## Configure cmake pr
 
 # NOTE: Works only with clang v22.1.8 with this arguments and cmake v4.4.x! CK
 build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
-	cmake --version
-	cmake --preset Release --log-level=VERBOSE -D BOOST_USE_MODULES=ON \
-	-D CMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON} \
-	-D CMAKE_CXX_MODULE_STD=ON -D CMAKE_CXX_STANDARD=23
+	modules_json_option=""; \
+	case "$${CXX##*/}" in \
+	    clang++|clang++-[0-9]*) \
+	        source_json=/lib/x86_64-linux-gnu/libc++.modules.json; \
+	        patched_json="$${PWD}/build/Release/libc++.modules.json"; \
+	        if test -r /etc/os-release && \
+	            grep -q '^ID=ubuntu$$' /etc/os-release && \
+	            test -n "$${CI:-}" && \
+	            test -n "$${LLVM_PATH:-}" && \
+	            test -r "$${source_json}"; then \
+	                mkdir -p "$${patched_json%/*}"; \
+	                sed -e "s#\\.\\./share/libc++#$${LLVM_PATH}/share/libc++#" \
+	                    "$${source_json}" > "$${patched_json}"; \
+	            modules_json_option="-D CMAKE_CXX_STDLIB_MODULES_JSON=$${patched_json}"; \
+	        fi; \
+	        ;; \
+	esac; \
+	cmake --version; \
+	cmake --preset Release --log-level=VERBOSE \
+	    -D BOOST_USE_MODULES=ON \
+	    -D CMAKE_CXX_MODULE_STD=ON \
+	    -D CMAKE_CXX_STANDARD=23 \
+	    $${modules_json_option}
 
 build: compile_commands.json ## Run build preset
 	cmake --build --preset Release
