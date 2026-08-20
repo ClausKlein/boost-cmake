@@ -273,26 +273,6 @@
      add_executable(boost_pfr_module_usage modules/usage_sample.cpp)
      target_link_libraries(boost_pfr_module_usage PRIVATE Boost::pfr)
      add_test(NAME boost_pfr_module_usage COMMAND boost_pfr_module_usage)
---- libs/stacktrace/CMakeLists.txt.old	2026-08-17 21:21:54.022237000 +0200
-+++ libs/stacktrace/CMakeLists.txt	2026-08-18 17:30:43.498139145 +0200
-@@ -3,7 +3,7 @@
- # Distributed under the Boost Software License, Version 1.0.
- # https://www.boost.org/LICENSE_1_0.txt
- 
--cmake_minimum_required(VERSION 3.8...4.20)
-+cmake_minimum_required(VERSION 3.8...4.4)
- 
- project(boost_stacktrace VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
- 
-@@ -18,7 +18,7 @@
- 
-   if(${import_std})
-     target_compile_features(${name} PUBLIC cxx_std_23)
--    target_compile_definitions(${name} PRIVATE BOOST_STACKTRACE_USE_STD_MODULE)
-+    target_compile_definitions(${name} PUBLIC BOOST_STACKTRACE_USE_STD_MODULE)
-   else()
-     target_compile_features(${name} PUBLIC cxx_std_20)
-   endif()
 --- libs/type_index/CMakeLists.txt.old	2026-08-17 21:36:16.377197000 +0200
 +++ libs/type_index/CMakeLists.txt	2026-08-19 10:44:01.331373042 +0200
 @@ -4,12 +4,12 @@
