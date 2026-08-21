@@ -20,15 +20,14 @@ include(GNUInstallDirs)
 include(cmake/CPM.cmake)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
+
 set(BOOST_INCLUDE_LIBRARIES any pfr beast filesystem headers)
 set(BOOST_USE_MODULES ON)
 set(Boost_VERBOSE ON)
 CPMAddPackage("gh:ClausKlein/boost-cmake#v1.92.0-rc2")
 
-target_include_directories(
-  ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-...
+add_libray(${PROJECT_NAME} my_sources.cpp)
+# ...
 
 target_link_libraries(lib_using_filesystem PUBLIC Boost::filesystem)
 target_link_libraries(lib_using_header_only PUBLIC Boost::headers)
@@ -70,7 +69,7 @@ packageProject(
   INCLUDE_HEADER_PATTERN "*.h"
   DISABLE_VERSION_SUFFIX YES
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "Boost 1.91"
+  DEPENDENCIES "Boost 1.92"
 )
 
 include(CPack)

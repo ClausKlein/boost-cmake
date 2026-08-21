@@ -110,9 +110,9 @@ endif()
 set(BOOST_LIBS_REQUIRED headers)
 set(BOOST_EXCLUDE_LIBRARIES
     cobalt
-    dll # FIXME: use BOOST_USE_MODULES
+    dll # FIXME: use BOOST_USE_MODULES, but does not build! CK
     fiber
-    graph # TODO: takes to long to build! CK
+    graph # FIXME: takes to long to build! CK
     iostreams
     locale
     log
@@ -137,27 +137,27 @@ if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
         any # use BOOST_USE_MODULES, deps on type_index
         asio
         atomic
-        beast # deps on type_index
+        beast # NOTE: interface, but deps on type_index! CK
         stacktrace # use BOOST_USE_MODULES
         chrono
         container
-        contract # TODO: deps on any! CK
+        contract # TODO(CK): library, deps on any!
         conversion # use BOOST_USE_MODULES
         coroutine
         exception
         filesystem # FIXME: Warnings with g++-16 on OSX! CK
-        geometry # deps on any
+        geometry # NOTE: interface, but deps on any
         graph # FIXME: deps on any, and serialization! CK
         json
         lexical_cast # use BOOST_USE_MODULES
         math
         optional
-        parser # deps on type_index
+        parser # interface, but deps on type_index! CK
         pfr # use BOOST_USE_MODULES
         process # deps on type_index
-        program_options # TODO: deps on any! CK
-        property_map # interface, but deps on any! CK
-        property_tree # interface, but deps on any! CK
+        program_options # TODO(CK): library, deps on any!
+        property_map # NOTE: interface, but deps on any! CK
+        property_tree # NOTE: interface, but deps on any! CK
         regex
         serialization
         signals2
@@ -220,23 +220,21 @@ FetchContent_Declare(
     ${EXCLUDE_FROM_ALL}
 )
 
-FetchContent_GetProperties(Boost)
-if(NOT Boost_POPULATED)
-    message(STATUS "Fetching Boost")
-    FetchContent_MakeAvailable(Boost)
-    message(STATUS "Fetching Boost - done")
-    set(BOOST_SOURCE ${Boost_SOURCE_DIR})
-    message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
-    set(FETCHCONTENT_SOURCE_DIR_BOOST
-        "${Boost_SOURCE_DIR}"
-        CACHE PATH
-        "Boost patched source DIR"
-        FORCE
-    )
-endif()
+FetchContent_MakeAvailable(Boost)
+set(BOOST_SOURCE ${Boost_SOURCE_DIR})
+message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 
+# TODO(CK): should be a function instead use of BOOST_SOURCE and BOOST_VERSION
 include(cmake/CheckBoostVersion.cmake)
+
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
+# TODO(CK): possible workaround to prevent multiple call to git apply patches
+set(FETCHCONTENT_SOURCE_DIR_BOOST
+    "${Boost_SOURCE_DIR}"
+    CACHE PATH
+    "Boost patched source DIR"
+    FORCE
+)
 
 include(cmake/ccache.cmake)
 

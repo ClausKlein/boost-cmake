@@ -1,6 +1,6 @@
 --- tools/cmake/include/BoostInstall.cmake.old	2026-08-20 18:18:48.000000000 +0200
-+++ tools/cmake/include/BoostInstall.cmake	2026-08-20 17:33:15.481391894 +0200
-@@ -337,6 +337,24 @@
++++ tools/cmake/include/BoostInstall.cmake	2026-08-21 10:38:47.326224762 +0200
+@@ -337,6 +337,25 @@
      string(APPEND CONFIG_INSTALL_DIR "-static")
    endif()
  
@@ -9,7 +9,8 @@
 +    get_target_property(INTERFACE_CXX_MODULE_SETS ${LIB} INTERFACE_CXX_MODULE_SETS)
 +    if(INTERFACE_CXX_MODULE_SETS)
 +      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_CXX_MODULE_SETS=${INTERFACE_CXX_MODULE_SETS}")
-+      set(__INSTALL_CXX_MODULES FILE_SET ${INTERFACE_CXX_MODULE_SETS} DESTINATION ${CMAKE_INSTALL_DATADIR})
++      set(extrainstalldir "${CMAKE_INSTALL_DATADIR}/boost-${__VERSION}/${LIB}")
++      set(__INSTALL_CXX_MODULES FILE_SET ${INTERFACE_CXX_MODULE_SETS} DESTINATION ${extrainstalldir})
 +    endif()
 +  endif()
 +
@@ -18,14 +19,14 @@
 +    get_target_property(INTERFACE_HEADER_SETS ${LIB} INTERFACE_HEADER_SETS)
 +    if(INTERFACE_HEADER_SETS)
 +      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_HEADER_SETS=${INTERFACE_HEADER_SETS}")
-+      set(__INSTALL_HEADER_SETS FILE_SET ${INTERFACE_HEADER_SETS})
++      set(__INSTALL_HEADER_SETS FILE_SET ${INTERFACE_HEADER_SETS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/boost-${__VERSION}")
 +    endif()
 +  endif()
 +
    install(TARGETS ${LIB} EXPORT ${LIB}-targets
      # explicit destination specification required for 3.13, 3.14 no longer needs it
      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-@@ -344,8 +362,18 @@
+@@ -344,8 +363,18 @@
      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
      PRIVATE_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
      PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
@@ -44,7 +45,7 @@
    export(TARGETS ${LIB} NAMESPACE Boost:: FILE export/${LIB}-targets.cmake)
  
    if(MSVC)
-@@ -362,7 +390,9 @@
+@@ -362,7 +391,9 @@
      __boost_install_update_sources(${LIB} ${__EXTRA_DIRECTORY} ${__EXTRA_INSTALL_DIRECTORY})
    endif()
  
@@ -55,6 +56,14 @@
  
    set_target_properties(${LIB} PROPERTIES _boost_is_installed ON)
  
+@@ -589,6 +620,7 @@
+ 
+   endif()
+ 
++  set(extrainstalldir)
+   if(__EXTRA_DIRECTORY AND NOT BOOST_SKIP_INSTALL_RULES AND NOT CMAKE_SKIP_INSTALL_RULES)
+ 
+     # Extract the library name from the path, one component up from the extra directory
 --- tools/cmake/include/BoostRoot.cmake.old	2026-08-20 18:44:31.506539647 +0200
 +++ tools/cmake/include/BoostRoot.cmake	2026-08-17 16:46:20.302542033 +0200
 @@ -123,7 +123,9 @@
@@ -90,8 +99,8 @@
    src/archive_exception.cpp
    src/basic_archive.cpp
 --- libs/any/CMakeLists.txt.old	2026-08-18 19:27:38.000000000 +0200
-+++ libs/any/CMakeLists.txt	2026-08-19 10:41:12.090281375 +0200
-@@ -2,11 +2,11 @@
++++ libs/any/CMakeLists.txt	2026-08-21 13:15:12.036761186 +0200
+@@ -2,25 +2,25 @@
  # Distributed under the Boost Software License, Version 1.0.
  # See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt
  
@@ -104,9 +113,12 @@
 +if(BOOST_USE_MODULES)
 +    add_library(boost_any STATIC)
      target_sources(boost_any PUBLIC
-         FILE_SET modules_public
-             TYPE CXX_MODULES
-@@ -15,12 +15,12 @@
+-        FILE_SET modules_public
+-            TYPE CXX_MODULES
++        FILE_SET CXX_MODULES
++            BASE_DIRS modules
+             FILES modules/boost_any.cppm
+     )
  
      target_compile_features(boost_any PUBLIC cxx_std_20)
      target_compile_definitions(boost_any PUBLIC BOOST_USE_MODULES)
@@ -125,8 +137,8 @@
      else()
          message(STATUS "`import std;` is not available")
 --- libs/conversion/CMakeLists.txt.old	2026-08-18 18:13:14.105023000 +0200
-+++ libs/conversion/CMakeLists.txt	2026-08-19 08:56:12.178496987 +0200
-@@ -4,11 +4,12 @@
++++ libs/conversion/CMakeLists.txt	2026-08-21 13:09:29.125413790 +0200
+@@ -4,23 +4,23 @@
  # Distributed under the Boost Software License, Version 1.0.
  # See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt
  
@@ -140,9 +152,14 @@
 +if(BOOST_USE_MODULES)
 +  add_library(boost_conversion STATIC)
    target_sources(boost_conversion PUBLIC
-     FILE_SET modules_public
-     TYPE CXX_MODULES
-@@ -18,9 +19,9 @@
+-    FILE_SET modules_public
+-    TYPE CXX_MODULES
+-    BASE_DIRS modules
+-    FILES ${CMAKE_CURRENT_LIST_DIR}/modules/boost_conversion.cppm
++    FILE_SET CXX_MODULES
++      BASE_DIRS modules
++      FILES modules/boost_conversion.cppm
+   )
  
    target_compile_definitions(boost_conversion PUBLIC BOOST_USE_MODULES)
    get_property(__standard TARGET boost_conversion PROPERTY CXX_STANDARD)
@@ -193,8 +210,8 @@
  else()
    target_link_libraries(boost_dll ${__scope} Boost::dll_boost_fs)
 --- libs/lexical_cast/CMakeLists.txt.old	2026-08-17 21:14:44.138016000 +0200
-+++ libs/lexical_cast/CMakeLists.txt	2026-08-19 08:52:15.229534104 +0200
-@@ -3,13 +3,12 @@
++++ libs/lexical_cast/CMakeLists.txt	2026-08-21 13:09:18.668146913 +0200
+@@ -3,22 +3,26 @@
  # Distributed under the Boost Software License, Version 1.0.
  # https://www.boost.org/LICENSE_1_0.txt
  
@@ -209,9 +226,12 @@
 +if(BOOST_USE_MODULES)
 +    add_library(boost_lexical_cast STATIC)
      target_sources(boost_lexical_cast PUBLIC
-         FILE_SET modules_public TYPE CXX_MODULES FILES
-             ${CMAKE_CURRENT_LIST_DIR}/modules/boost_lexical_cast.cppm
-@@ -17,8 +16,12 @@
+-        FILE_SET modules_public TYPE CXX_MODULES FILES
+-            ${CMAKE_CURRENT_LIST_DIR}/modules/boost_lexical_cast.cppm
++        FILE_SET CXX_MODULES
++            BASE_DIRS modules
++            FILES modules/boost_lexical_cast.cppm
+     )
  
      target_compile_features(boost_lexical_cast PUBLIC cxx_std_20)
      target_compile_definitions(boost_lexical_cast PUBLIC BOOST_USE_MODULES)
@@ -227,7 +247,7 @@
      else()
          message(STATUS "`import std;` is not available")
 --- libs/pfr/CMakeLists.txt.old	2026-08-18 19:29:18.000000000 +0200
-+++ libs/pfr/CMakeLists.txt	2026-08-19 10:59:59.579538359 +0200
++++ libs/pfr/CMakeLists.txt	2026-08-21 13:10:00.727689106 +0200
 @@ -4,20 +4,26 @@
  # Distributed under the Boost Software License, Version 1.0.
  # https://www.boost.org/LICENSE_1_0.txt
@@ -243,8 +263,8 @@
 +    add_library(boost_pfr STATIC)
      target_sources(boost_pfr PUBLIC
 -        FILE_SET modules_public TYPE CXX_MODULES FILES modules/boost_pfr.cppm
-+        FILE_SET modules_public
-+            TYPE CXX_MODULES
++        FILE_SET CXX_MODULES
++            BASE_DIRS modules
 +            FILES modules/boost_pfr.cppm
      )
  
@@ -276,8 +296,8 @@
      target_link_libraries(boost_pfr_module_usage PRIVATE Boost::pfr)
      add_test(NAME boost_pfr_module_usage COMMAND boost_pfr_module_usage)
 --- libs/type_index/CMakeLists.txt.old	2026-08-17 21:36:16.377197000 +0200
-+++ libs/type_index/CMakeLists.txt	2026-08-19 10:44:01.331373042 +0200
-@@ -4,12 +4,12 @@
++++ libs/type_index/CMakeLists.txt	2026-08-21 13:10:17.933107868 +0200
+@@ -4,24 +4,26 @@
  # Distributed under the Boost Software License, Version 1.0.
  # https://www.boost.org/LICENSE_1_0.txt
  
@@ -288,12 +308,17 @@
  
 -if (BOOST_USE_MODULES)
 -    add_library(boost_type_index)
+-    target_sources(boost_type_index
+-      PUBLIC
 +if(BOOST_USE_MODULES)
 +    add_library(boost_type_index STATIC)
-     target_sources(boost_type_index
-       PUBLIC
++    target_sources(boost_type_index PUBLIC
          FILE_SET CXX_MODULES
-@@ -19,9 +19,12 @@
+-        BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+-        FILES "${CMAKE_CURRENT_SOURCE_DIR}/modules/boost_type_index.cppm"
++            BASE_DIRS modules
++            FILES "modules/boost_type_index.cppm"
+     )
  
      target_compile_features(boost_type_index PUBLIC cxx_std_20)
      target_compile_definitions(boost_type_index PUBLIC BOOST_USE_MODULES)

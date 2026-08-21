@@ -35,7 +35,7 @@
         "PATH": "$env{HOME}/.local/bin${pathListSep}$penv{PATH}"
       },
       "warnings": {
-        "author": false,
+        "author": true,
         "deprecated": true,
         "uninitialized": true
       },
