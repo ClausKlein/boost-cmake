@@ -124,6 +124,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # FIXME: use private modules! CK
     list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
 endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_MODULE_STD)
+    list(APPEND BOOST_EXCLUDE_LIBRARIES lexical_cast)
+endif()
 if(MSVC)
     # FIXME: any, and stacktrace fails to build with modules on Windows! CK
     list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
