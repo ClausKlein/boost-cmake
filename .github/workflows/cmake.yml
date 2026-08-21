@@ -38,9 +38,9 @@ jobs:
             compiler: gcc-16
 
         variant:
-          - compile_commands.json
           - disabled_modules
-          - fresh
+          - cxx_module
+          - cxx_module_std
 
     name: ${{ matrix.platform.os }} / ${{ matrix.platform.compiler }} / ${{ matrix.variant }}
     runs-on: ${{ matrix.platform.os }} # -latest

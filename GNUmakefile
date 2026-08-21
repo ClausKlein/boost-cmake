@@ -14,8 +14,8 @@ export CMAKE_CONFIG_TYPE=Release
 export CMAKE_CONFIGURATION_TYPES="Release;Debug"
 export CMAKE_EXPORT_COMPILE_COMMANDS=YES
 export CMAKE_GENERATOR=Ninja
-export CMAKE_INSTALL_PREFIX="${HOME}/.local"
-export CMAKE_PREFIX_PATH="${HOME}/.local"
+# export CMAKE_INSTALL_PREFIX="${HOME}/.local"
+# export CMAKE_PREFIX_PATH="${HOME}/.local"
 export CTEST_OUTPUT_ON_FAILURE=YES
 
 #####################################################################
@@ -41,22 +41,23 @@ IMAGE?=ghcr.io/bemanproject/infra-containers-clang:latest
 
 #####################################################################
 
-.PHONY: all fresh disabled_modules build ctest install examples format clean distclean
+.PHONY: all cxx_module cxx_module_std disabled_modules build ctest install examples format clean distclean
 
-all: ctest ## Make all with cmake with verbose cusomized workflow preset
+all: ctest ## Make all with cmake with cusomized workflow preset in verbose mode
 
 # NOTE: Works only with clang v22.1.8 with different C++26 standard and cmake v4.4.x! CK
-examples: # XXX install
+examples: # XXX install ## Build examples as standalone project to test installed config package
 	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh \
 	-D CMAKE_CXX_MODULE_STD=ON -D CMAKE_CXX_STANDARD=26 \
 	-D BOOST_USE_MODULES=ON \
 		--debug-find-pkg=Boost
 	ninja -C build test -v
 
-fresh: CMakePresets.json ## Make all with cmake Release workflow preset
+cxx_module: CMakePresets.json ## Run cmake workflow preset Release with BOOST_USE_MODULES
 	cmake --workflow --preset Release --fresh
 
-compile_commands.json: build/Release/compile_commands.json ## Configure cmake preset in verbose mode
+cxx_module_std: compile_commands.json ## Configure with CXX_MODULE_STD set in verbose mode
+compile_commands.json: build/Release/compile_commands.json
 	ln -sf $< .
 
 # NOTE: Works only with clang v22.1.8 with this arguments and cmake v4.4.x! CK
@@ -92,14 +93,13 @@ ctest: install ## Run ctest preset
 	ctest --preset Release
 
 install: build ## Install the cmake config package
-	# XXX cmake --build --preset Release --target install
-	cmake --install build/Release --config Release --prefix=${HOME}/.local/
+	cmake --build --preset Release --target install
+	# XXX cmake --install build/Release --config Release --prefix=${HOME}/.local/
 
 clean: ## Clean build tree
 	-cmake --build --preset Release --target clean
 
-disabled_modules: CXX=c++
-disabled_modules: ## Build w/o modules with default host compiler
+disabled_modules: ## Build with disabled CXX_SCAN_FOR_MODULES
 	cmake --preset Release -D CMAKE_CXX_SCAN_FOR_MODULES=OFF -D BOOST_USE_MODULES=OFF
 
 distclean: ## Make it really clean
@@ -113,7 +113,7 @@ format: ## Format cmake and source files
 # Helper targets
 .PHONY: env info dockerbuild
 
-dockerbuild: ## Start docker image interactive
+dockerbuild: ## Start docker ${IMAGE} interactive
 	docker run -it -v $(CURDIR):/src $(IMAGE)
 
 env: ## Show env
