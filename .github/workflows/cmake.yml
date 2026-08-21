@@ -22,17 +22,61 @@ env:
   CTEST_OUTPUT_ON_FAILURE: 1
 
 jobs:
-  build:
+  unix:
     strategy:
       fail-fast: false
 
       matrix:
-        os: [macos-latest, ubuntu-26.04, windows-latest]
+        platform:
+          - os: macos-latest
+            compiler: llvm-22
+          - os: macos-latest
+            compiler: gcc-16
+          - os: ubuntu-26.04
+            compiler: llvm-22
+          - os: ubuntu-26.04
+            compiler: gcc-16
 
-    runs-on: ${{ matrix.os }} # -latest
+        variant:
+          - compile_commands.json
+          - disabled_modules
+          - fresh
+
+    name: ${{ matrix.platform.os }} / ${{ matrix.platform.compiler }} / ${{ matrix.variant }}
+    runs-on: ${{ matrix.platform.os }} # -latest
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Setup build environment
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "^4.4.2"
+          ninjaVersion: "~1.13.0"
+
+      - name: Setup Cpp
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: ${{ matrix.platform.compiler }}
+
+      - name: Configure CMake custom preset
+        run: make ${{ matrix.variant }}
+
+      - name: Build CMake custom preset
+        run: make build
+
+      - name: Install custom project
+        run: make install
+
+      - name: Test custom examples
+        run: make ctest
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
@@ -40,49 +84,22 @@ jobs:
           ninjaVersion: "~1.13.0"
 
       - name: Setup MSVC
-        if: startsWith(matrix.os, 'windows')
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
 
-      - name: Setup Cpp
-        if: matrix.os != 'windows-latest'
-        uses: aminya/setup-cpp@v1
-        with:
-          compiler: llvm-22
-
-      - name: Configure CMake custom preset
-        if: matrix.os != 'windows-latest'
-        run: make compile_commands.json
-
-      - name: Build CMake custom preset
-        if: matrix.os != 'windows-latest'
-        run: make build
-
-      - name: Install custom project
-        if: matrix.os != 'windows-latest'
-        run: make install
-
-      - name: Test custom examples
-        if: matrix.os != 'windows-latest'
-        run: make ctest
-
       - name: Configure CMake
-        if: startsWith(matrix.os, 'windows')
         run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON
 
       - name: Build
-        if: startsWith(matrix.os, 'windows')
         # Build your program with the given configuration
         run: cmake --build --preset ${{env.BUILD_TYPE}}
 
       - name: Install
-        if: startsWith(matrix.os, 'windows')
         # Install the project artefacts to CMAKE_INSTALL_PREFIX
         run: cmake --install ${{github.workspace}}/build/${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
 
       - name: Test
-        if: startsWith(matrix.os, 'windows')
         working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
         # Execute tests defined by the CMake configuration, but needs to find_package(Boost)!
         run: ctest -C ${{env.BUILD_TYPE}}
