@@ -125,7 +125,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_MODULE_STD)
-    list(APPEND BOOST_EXCLUDE_LIBRARIES lexical_cast)
+    # FIXME: date_time library, deps on lexical_cast
+    # but asio, thread depends on date_time!
+    # and process on asio
+    # XXX list(APPEND BOOST_EXCLUDE_LIBRARIES lexical_cast date_time asio)
 endif()
 if(MSVC)
     # FIXME: any, and stacktrace fails to build with modules on Windows! CK

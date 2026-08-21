@@ -7,6 +7,10 @@
 // clang++ -std=c++20 -fmodule-file=lexical_cast.pcm lexical_cast.pcm usage_sample.cpp
 
 //[lexical_cast_module_example
+#ifndef BOOST_LEXICAL_CAST_USE_STD_MODULE
+#  include <typeinfo>  // XXX to prevent g++-16 error: must ‘#include <typeinfo>’ before using ‘typeid’
+#endif
+
 import boost.lexical_cast;
 
 auto main() -> int {

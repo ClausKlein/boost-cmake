@@ -114,7 +114,7 @@ if(BOOST_USE_MODULES)
     endif()
 endif()
 
-add_boost_example(ExampleAsio Boost::asio deferred.cpp)
+add_boost_example(ExampleAsio Boost::asio asio_deferred.cpp)
 add_boost_example(ExampleRegex Boost::regex regex.cpp)
 
 if(APPLE)
