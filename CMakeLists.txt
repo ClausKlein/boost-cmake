@@ -121,8 +121,13 @@ set(BOOST_EXCLUDE_LIBRARIES
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # FIXME: use private modules! CK
-    list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
+    if(BOOST_USE_MODULES)
+        # FIXME: stacktrace use private modules! CK
+        list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace)
+        # TODO: contract and program_options does not build with any module
+        # at least on APPLE with g++-16!
+        list(APPEND BOOST_EXCLUDE_LIBRARIES contract program_options)
+    endif()
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_MODULE_STD)
     # FIXME: date_time library, deps on lexical_cast
@@ -132,7 +137,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_MODULE_STD)
 endif()
 if(MSVC)
     # FIXME: any, and stacktrace fails to build with modules on Windows! CK
-    list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace any contract program_options)
+    list(APPEND BOOST_EXCLUDE_LIBRARIES stacktrace)
+    # TODO: contract and program_options does not build with any module
+    # on Windows
+    list(APPEND BOOST_EXCLUDE_LIBRARIES contract program_options)
 endif()
 
 if(PROJECT_IS_TOP_LEVEL AND NOT BOOST_BUILD_ALL)
@@ -182,6 +190,7 @@ else()
     list(APPEND BOOST_INCLUDE_LIBRARIES headers)
     list(REMOVE_DUPLICATES BOOST_INCLUDE_LIBRARIES)
 endif()
+list(REMOVE_DUPLICATES BOOST_EXCLUDE_LIBRARIES)
 
 # ---- Add/prepare dependency handling via CPM ----
 # see https://github.com/TheLartians/CPM.cmake for more info
@@ -210,6 +219,20 @@ set(BOOST_URL_SHA256
     CACHE STRING
     "Boost download URL SHA256 checksum"
 )
+
+#############################################################
+if(
+    APPLE
+    AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 17
+    AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$"
+)
+    # FIXME: GCC 16 on Darwin ARM64 loses boost::ulong_long_type from
+    # Boost.Config when sources are compiled with -fmodules-ts.
+    add_compile_definitions(BOOST_HAS_LONG_LONG)
+endif()
+#############################################################
 
 # ---- Add Boost source tar archive via FetchContent ----
 include(FetchContent)
@@ -255,24 +278,15 @@ endif()
 
 #############################################################
 
-if(
-    APPLE
-    AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$"
-    AND TARGET boost_coroutine
-)
-    # FIXME: GCC 16 on Darwin ARM64 loses declarations from Boost.Config
-    # when ordinary Boost.Coroutine sources are compiled with -fmodules-ts.
-    set_property(TARGET boost_coroutine PROPERTY CXX_SCAN_FOR_MODULES OFF)
-endif()
-
-#############################################################
 find_package(Threads)
 
 # Compilation options required for all platforms
 target_compile_definitions(
     boost_headers
-    INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT> BOOST_ASIO_NO_DEPRECATED
+    INTERFACE
+        $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT>
+        BOOST_ASIO_NO_DEPRECATED
+        BOOST_HAS_LONG_LONG
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
 

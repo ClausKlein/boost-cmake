@@ -659,3 +659,25 @@
  #define BOOST_STACKTRACE_INTERFACE_UNIT
  #define BOOST_STACKTRACE_LINK
  
+--- libs/any/modules/boost_any.cppm.old	2026-08-22 21:56:56.328322891 +0200
++++ libs/any/modules/boost_any.cppm	2026-08-22 21:17:53.838820112 +0200
+@@ -11,7 +11,9 @@
+ #include <boost/assert.hpp>
+ #include <boost/config.hpp>
+ #include <boost/throw_exception.hpp>
+-#include <boost/type_index.hpp>
++
++// Any-specific global module fragment includes.
++// Do not include <boost/type_index.hpp> here!
+ 
+ #ifdef BOOST_ANY_USE_STD_MODULE
+ import std;
+@@ -27,6 +29,8 @@
+ 
+ export module boost.any;
+ 
++import boost.type_index;
++
+ #ifdef __clang__
+ #   pragma clang diagnostic ignored "-Winclude-angled-in-module-purview"
+ #endif

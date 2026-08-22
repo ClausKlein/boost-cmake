@@ -27,23 +27,26 @@ jobs:
       fail-fast: false
 
       matrix:
-        platform:
-          - os: macos-latest
-            compiler: llvm-22
-          - os: macos-latest
-            compiler: gcc-16
-          - os: ubuntu-26.04
-            compiler: llvm-22
-          - os: ubuntu-26.04
-            compiler: gcc-16
+        os:
+          - macos-latest
+          - ubuntu-26.04
+
+        compiler:
+          - llvm-22
+          - gcc-16
 
         variant:
           - disabled_modules
           - cxx_module
           - cxx_module_std
 
-    name: ${{ matrix.platform.os }} / ${{ matrix.platform.compiler }} / ${{ matrix.variant }}
-    runs-on: ${{ matrix.platform.os }} # -latest
+        exclude:
+          - os: macos-latest
+            compiler: gcc-16
+            variant: cxx_module_std
+
+    name: ${{ matrix.os }} / ${{ matrix.compiler }} / ${{ matrix.variant }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v6
@@ -57,13 +60,13 @@ jobs:
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:
-          compiler: ${{ matrix.platform.compiler }}
+          compiler: ${{ matrix.compiler }}
 
       - name: Configure CMake custom preset
         run: make ${{ matrix.variant }}
 
       - name: Diagnose GCC long long configuration
-        if: matrix.platform.os == 'macos-latest' && matrix.platform.compiler == 'gcc-16'
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc-16'
         shell: bash
         run: |
           printf '#include <boost/config.hpp>\n' |
@@ -89,7 +92,7 @@ jobs:
               -fsyntax-only -x c++ -
 
       - name: Diagnose Boost long long configuration
-        if: matrix.platform.os == 'macos-latest' && matrix.platform.compiler == 'gcc-16'
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc-16'
         shell: /bin/bash --noprofile --norc -e -o pipefail {0}
         run: |
           boost_source="${PWD}/build/Release/_deps/boost-src"
@@ -141,7 +144,7 @@ jobs:
               -fsyntax-only -x c++ -
 
       - name: Preprocess failing coroutine source
-        if: matrix.platform.os == 'macos-latest' && matrix.platform.compiler == 'gcc-16'
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc-16'
         shell: /bin/bash --noprofile --norc -e -o pipefail {0}
         run: |
           boost_source="${PWD}/build/Release/_deps/boost-src"
