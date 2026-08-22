@@ -54,7 +54,9 @@ examples: # XXX install ## Build examples as standalone project to test installe
 	ninja -C build test -v
 
 cxx_module: CMakePresets.json ## Run cmake workflow preset Release with BOOST_USE_MODULES
-	cmake --workflow --preset Release --fresh
+	cmake --preset Release --log-level=VERBOSE --fresh
+	ln -sf build/Release/compile_commands.json .
+	# TODO: cmake --workflow --preset Release --fresh
 
 cxx_module_std: compile_commands.json ## Configure with CXX_MODULE_STD set in verbose mode
 compile_commands.json: build/Release/compile_commands.json

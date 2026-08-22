@@ -234,7 +234,7 @@ message(STATUS "Boost_SOURCE_DIR=${Boost_SOURCE_DIR}")
 include(cmake/CheckBoostVersion.cmake)
 
 message(STATUS "Boost found: ${BOOST_VERSION} ${BOOST_SOURCE}")
-# TODO(CK): possible workaround to prevent multiple call to git apply patches
+# TODO(CK): one possible workaround to not call the PATCH_COMMAND while each RERUN_CMAKE
 set(FETCHCONTENT_SOURCE_DIR_BOOST
     "${Boost_SOURCE_DIR}"
     CACHE PATH
@@ -242,14 +242,28 @@ set(FETCHCONTENT_SOURCE_DIR_BOOST
     FORCE
 )
 
-include(cmake/ccache.cmake)
+#############################################################
 
+include(cmake/ccache.cmake)
 configure_file(cmake/ccache.cmake ${BOOST_SOURCE}/tools/cmake/include/ccache.cmake COPYONLY)
 
 list(APPEND CMAKE_MODULE_PATH ${BOOST_SOURCE}/tools/cmake/include)
 include(BoostTestJamfile OPTIONAL RESULT_VARIABLE HAVE_BOOST_TEST)
 if(HAVE_BOOST_TEST)
     message(STATUS "We found boost ctest module: ${HAVE_BOOST_TEST}")
+endif()
+
+#############################################################
+
+if(
+    APPLE
+    AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$"
+    AND TARGET boost_coroutine
+)
+    # FIXME: GCC 16 on Darwin ARM64 loses declarations from Boost.Config
+    # when ordinary Boost.Coroutine sources are compiled with -fmodules-ts.
+    set_property(TARGET boost_coroutine PROPERTY CXX_SCAN_FOR_MODULES OFF)
 endif()
 
 #############################################################
@@ -261,6 +275,7 @@ target_compile_definitions(
     INTERFACE $<$<CONFIG:Release>:BOOST_DISABLE_ASSERT> BOOST_ASIO_NO_DEPRECATED
 )
 target_link_libraries(boost_headers INTERFACE Threads::Threads)
+
 #############################################################
 
 # ---- usage example and test ----
