@@ -16,7 +16,7 @@ if(
 endif()
 
 # gersemi: off
-project(Boost-CMake LANGUAGES CXX VERSION 1.92.0.2)
+project(Boost-CMake LANGUAGES CXX VERSION 1.92.0.3)
 # gersemi: on
 
 # Work around missing MSVC C++26 bookkeeping in CMake through version 4.4.

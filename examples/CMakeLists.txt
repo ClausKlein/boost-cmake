@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30...4.4)
 
 include(../cmake/prelude.cmake)
 
-# test boost-cmake 1.92.0.2
+# test boost-cmake 1.92.0.3
 project(BoostExamples LANGUAGES CXX)
 
 enable_testing()
