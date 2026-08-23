@@ -11,21 +11,16 @@ set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 include(FetchContent)
 FetchContent_Declare(
     boost-cmake
-    URL
-        https://github.com/ClausKlein/boost-cmake/archive/refs/tags/v1.92.0-rc3.tar.gz
-    URL_HASH
-        SHA256=bbcd4de95670755b39f874ae7efe307beef19c6b53c9736c037ebd794e10bab0
-    DOWNLOAD_EXTRACT_TIMESTAMP ON
-    PATCH_COMMAND
-        patch --backup --forward -p1 -i
-        ${CMAKE_CURRENT_SOURCE_DIR}/readme.patch
-    # EXCLUDE_FROM_ALL
+    URL https://github.com/ClausKlein/boost-cmake/archive/refs/tags/v1.92.0-rc3.tar.gz
+    URL_HASH SHA256=bbcd4de95670755b39f874ae7efe307beef19c6b53c9736c037ebd794e10bab0
+    PATCH_COMMAND patch --backup --forward -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/readme.patch
+    # XXX NO! EXCLUDE_FROM_ALL
     SYSTEM
     SOURCE_SUBDIR tests
 )
 FetchContent_MakeAvailable(boost-cmake)
 
-return()
+return() # NOTE: XXX used here! CK
 ##################################################
 
 add_library(typeinfo_module)
