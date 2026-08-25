@@ -140,16 +140,14 @@ function(add_boost_example example_name boost_target source_file)
     add_test(NAME "${example_name}" COMMAND "${example_name}")
 endfunction()
 
+# NOTE: needed in case of standalone build without cxx_modules! CK
 if(BOOST_USE_MODULES)
     add_boost_module_example(ExampleAny Boost::any any_module_usage_sample.cpp)
     add_boost_module_example(ExampleConversion Boost::conversion conversion_usage_sample.cpp)
     add_boost_module_example(ExampleLexical_cast Boost::lexical_cast lexical_cast_usage_sample.cpp)
     add_boost_module_example(ExampleStacktrace Boost::stacktrace stacktrace_usage_sample.cpp)
     add_boost_module_example(ExampleType_index Boost::type_index type_index_usage_sample.cpp)
-    # TODO(CK): why only on Darwin? Check this!
-    if(TRUE OR APPLE)
-        add_boost_module_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
-    endif()
+    add_boost_module_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
 endif()
 
 add_boost_example(ExampleAsio Boost::asio asio_deferred.cpp)

@@ -22,10 +22,14 @@ export CTEST_OUTPUT_ON_FAILURE=YES
 
 export PATH:=${HOME}/.local/bin:${PATH}
 
+ifeq ($(origin CC),default)
+  export CC:= gcc-16
+endif
+
 ifeq ($(origin CXX),default)
   export CXX:= g++-16
-  export CC:= gcc-16
   # XXX export GCOV:="llvm-cov gcov"
+  # TODO: only needed to fix clang++ problem on infra-containers-clang
   # export CXXFLAGS:= -stdlib=libc++ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 endif
 
