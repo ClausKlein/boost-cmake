@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.30...4.4)
 include(../cmake/prelude.cmake)
 
 # test boost-cmake 1.92.0.3
-project(BoostExamples LANGUAGES CXX)
+project(BoostExamples LANGUAGES CXX C)
 
 enable_testing()
 
@@ -67,6 +67,7 @@ if(PROJECT_IS_TOP_LEVEL)
             SYSTEM
             FIND_PACKAGE_ARGS
                 ${BOOST_VERSION}
+                NO_SYSTEM_ENVIRONMENT_PATH
                 COMPONENTS
                     any
                     asio
@@ -139,14 +140,16 @@ function(add_boost_example example_name boost_target source_file)
     add_test(NAME "${example_name}" COMMAND "${example_name}")
 endfunction()
 
-add_boost_module_example(ExampleAny Boost::any any_module_usage_sample.cpp)
-add_boost_module_example(ExampleConversion Boost::conversion conversion_usage_sample.cpp)
-add_boost_module_example(ExampleLexical_cast Boost::lexical_cast lexical_cast_usage_sample.cpp)
-add_boost_module_example(ExampleStacktrace Boost::stacktrace stacktrace_usage_sample.cpp)
-add_boost_module_example(ExampleType_index Boost::type_index type_index_usage_sample.cpp)
-if(APPLE)
+if(BOOST_USE_MODULES)
+    add_boost_module_example(ExampleAny Boost::any any_module_usage_sample.cpp)
+    add_boost_module_example(ExampleConversion Boost::conversion conversion_usage_sample.cpp)
+    add_boost_module_example(ExampleLexical_cast Boost::lexical_cast lexical_cast_usage_sample.cpp)
+    add_boost_module_example(ExampleStacktrace Boost::stacktrace stacktrace_usage_sample.cpp)
+    add_boost_module_example(ExampleType_index Boost::type_index type_index_usage_sample.cpp)
     # TODO(CK): why only on Darwin? Check this!
-    add_boost_module_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
+    if(TRUE OR APPLE)
+        add_boost_module_example(ExamplePfr Boost::pfr pfr_usage_sample.cpp)
+    endif()
 endif()
 
 add_boost_example(ExampleAsio Boost::asio asio_deferred.cpp)
@@ -168,7 +171,8 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" #
             --build-generator "${CMAKE_GENERATOR}" #
             --build-makeprogram "${CMAKE_MAKE_PROGRAM}" #
-            --build-options "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            --build-options "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DCMAKE_CXX_MODULE_STD=${CMAKE_CXX_MODULE_STD}"
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
             "-DCMAKE_CXX_STDLIB_MODULES_JSON=${CMAKE_CXX_STDLIB_MODULES_JSON}"
