@@ -1,21 +1,32 @@
 --- tools/cmake/include/BoostInstall.cmake.old	2026-08-20 18:18:48.000000000 +0200
-+++ tools/cmake/include/BoostInstall.cmake	2026-08-21 10:38:47.326224762 +0200
-@@ -337,6 +337,25 @@
++++ tools/cmake/include/BoostInstall.cmake	2026-08-25 10:30:11.000000000 +0200
+@@ -3,7 +3,7 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt
+ 
+-if(NOT CMAKE_VERSION VERSION_LESS 3.10)
++if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
+   include_guard()
+ endif()
+ 
+@@ -337,6 +337,27 @@
      string(APPEND CONFIG_INSTALL_DIR "-static")
    endif()
  
 +  set(__INSTALL_CXX_MODULES)
-+  if(NOT CMAKE_VERSION VERSION_LESS 3.28)
++  set(__EXPORT_CXX_MODULES_CONFIG_FILES)
++  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
 +    get_target_property(INTERFACE_CXX_MODULE_SETS ${LIB} INTERFACE_CXX_MODULE_SETS)
 +    if(INTERFACE_CXX_MODULE_SETS)
 +      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_CXX_MODULE_SETS=${INTERFACE_CXX_MODULE_SETS}")
 +      set(extrainstalldir "${CMAKE_INSTALL_DATADIR}/boost-${__VERSION}/${LIB}")
 +      set(__INSTALL_CXX_MODULES FILE_SET ${INTERFACE_CXX_MODULE_SETS} DESTINATION ${extrainstalldir})
++      set(__EXPORT_CXX_MODULES_CONFIG_FILES CXX_MODULES_DIRECTORY .)
 +    endif()
 +  endif()
 +
 +  set(__INSTALL_HEADER_SETS)
-+  if(NOT CMAKE_VERSION VERSION_LESS 3.23)
++  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
 +    get_target_property(INTERFACE_HEADER_SETS ${LIB} INTERFACE_HEADER_SETS)
 +    if(INTERFACE_HEADER_SETS)
 +      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_HEADER_SETS=${INTERFACE_HEADER_SETS}")
@@ -26,18 +37,17 @@
    install(TARGETS ${LIB} EXPORT ${LIB}-targets
      # explicit destination specification required for 3.13, 3.14 no longer needs it
      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-@@ -344,8 +363,18 @@
+@@ -344,8 +365,17 @@
      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
      PRIVATE_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
      PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-+    # explicit needed if used starting with cmake v3.28
-+    # XXX FILE_SET CXX_MODULES DESTINATION "${CMAKE_INSTALL_DATADIR}"
++    # NOTE: explicit needed if used starting with cmake v3.28!
++    # optional install: FILE_SET CXX_MODULES DESTINATION "${CMAKE_INSTALL_DATADIR}"
 +    ${__INSTALL_CXX_MODULES}
-+    # Any module files from C++ modules from PUBLIC sources in a file set of type CXX_MODULES will be installed to the given DESTINATION.
-+    # FIXME: why does this silently not work here? CK
-+    # XXX CXX_MODULES_BMI DESTINATION ${CONFIG_INSTALL_DIR}/bmi-${CMAKE_CXX_COMPILER_ID}_$<CONFIG>
-+    # explicit needed if used starting with cmake v3.23
-+    # XXX FILE_SET HEADERS
++    # NOTE: explicit needed if used starting with cmake v3.23!
++    # Any module files from C++ modules from PUBLIC sources in a file set
++    # of type CXX_MODULES will be installed to the given DESTINATION.
++    # optional install: FILE_SET HEADERS
 +    ${__INSTALL_HEADER_SETS}
    )
  
@@ -45,18 +55,38 @@
    export(TARGETS ${LIB} NAMESPACE Boost:: FILE export/${LIB}-targets.cmake)
  
    if(MSVC)
-@@ -362,7 +391,9 @@
+@@ -353,7 +383,7 @@
+       install(FILES $<TARGET_PDB_FILE:${LIB}> DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
+     endif()
+ 
+-    if(TYPE STREQUAL "STATIC_LIBRARY" AND NOT CMAKE_VERSION VERSION_LESS 3.15)
++    if(TYPE STREQUAL "STATIC_LIBRARY" AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
+       install(FILES "$<TARGET_FILE_DIR:${LIB}>/$<TARGET_FILE_PREFIX:${LIB}>$<TARGET_FILE_BASE_NAME:${LIB}>.pdb" DESTINATION ${CMAKE_INSTALL_LIBDIR} OPTIONAL)
+     endif()
+   endif()
+@@ -362,7 +392,11 @@
      __boost_install_update_sources(${LIB} ${__EXTRA_DIRECTORY} ${__EXTRA_INSTALL_DIRECTORY})
    endif()
  
 -  install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake)
 +  install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake
-+    # XXX CXX_MODULES_DIRECTORY .
++    # NOTE: explicit needed if used starting with cmake v3.28!
++    # optional install config packages for: FILE_SET CXX_MODULES
++    ${__EXPORT_CXX_MODULES_CONFIG_FILES}
 +  )
  
    set_target_properties(${LIB} PROPERTIES _boost_is_installed ON)
  
-@@ -589,6 +620,7 @@
+@@ -491,7 +525,7 @@
+ 
+     # Header-only libraries are architecture-independent
+ 
+-    if(NOT CMAKE_VERSION VERSION_LESS 3.14)
++    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+ 
+       write_basic_package_version_file("${CONFIG_VERSION_FILE_NAME}" COMPATIBILITY SameMajorVersion ARCH_INDEPENDENT)
+ 
+@@ -589,6 +623,7 @@
  
    endif()
  

@@ -1,5 +1,5 @@
 --- libs/stacktrace/CMakeLists.txt.old	2026-08-17 21:21:54.022237000 +0200
-+++ libs/stacktrace/CMakeLists.txt	2026-08-21 13:11:22.692641676 +0200
++++ libs/stacktrace/CMakeLists.txt	2026-08-25 11:05:25.242001386 +0200
 @@ -3,7 +3,7 @@
  # Distributed under the Boost Software License, Version 1.0.
  # https://www.boost.org/LICENSE_1_0.txt
@@ -27,8 +27,68 @@
    else()
      target_compile_features(${name} PUBLIC cxx_std_20)
    endif()
+@@ -55,7 +55,7 @@
+       ${defs}
+   )
+ 
+-  if (add_module)
++  if(add_module)
+     stacktrace_add_module(boost_stacktrace_${suffix} ${import_std})
+   else()
+     target_sources(boost_stacktrace_${suffix}
+@@ -99,7 +99,7 @@
+ stacktrace_check(BOOST_STACKTRACE_HAS_WINDBG_CACHED has_windbg_cached.cpp "${CMAKE_CURRENT_SOURCE_DIR}/../config/include" "dbgeng;ole32")
+ 
+ set(_default_from_exception ON)
+-if (CMAKE_CXX_PLATFORM_ID MATCHES "Cygwin")
++if(CMAKE_CXX_PLATFORM_ID MATCHES "Cygwin")
+   set(_default_from_exception OFF)
+ endif()
+ 
+@@ -139,7 +139,7 @@
+   if(NOT CMAKE_CXX_STANDARD)
+     set(CMAKE_CXX_STANDARD 20)
+   endif()
+-  if ((CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD) AND CMAKE_CXX_MODULE_STD)
++  if((CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD) AND CMAKE_CXX_MODULE_STD)
+     message(STATUS "Using `import std;`")
+     set(__import_std ON)
+   else()
+@@ -163,12 +163,12 @@
+ # boost_stacktrace, default library
+ 
+ if(BOOST_USE_MODULES)
+-  add_library(boost_stacktrace)
++  add_library(boost_stacktrace STATIC)
+   stacktrace_add_module(boost_stacktrace ${__import_std})
+   set(__scope PUBLIC)
+ 
+   foreach(backend noop backtrace addr2line basic windbg windbg_cached)
+-    if (TARGET boost_stacktrace_${backend})
++    if(TARGET boost_stacktrace_${backend})
+       target_compile_definitions(boost_stacktrace_${backend} INTERFACE BOOST_STACKTRACE_BACKEND_MODULE=${backend})
+     endif()
+   endforeach()
 --- libs/stacktrace/test/test.cpp.old	2026-08-12 14:04:00.047147800 +0200
-+++ libs/stacktrace/test/test.cpp	2026-08-20 10:21:50.180851079 +0200
++++ libs/stacktrace/test/test.cpp	2026-08-24 21:11:15.000000000 +0200
+@@ -85,7 +85,7 @@
+ 
+     BOOST_TEST(ss1.str().find(" 1# ") != std::string::npos);
+     BOOST_TEST(ss2.str().find(" 1# ") != std::string::npos);
+-    
++
+     BOOST_TEST(ss1.str().find(" in ") != std::string::npos);
+     BOOST_TEST(ss2.str().find(" in ") != std::string::npos);
+ 
+@@ -212,7 +212,7 @@
+         BOOST_TEST(fv);
+         if (i > 1 && i < min_size - 3) {       // Begin ...and end of the trace may match, skipping
+             BOOST_TEST(st[i] != fv);
+-            
++
+ #if !(defined(BOOST_STACKTRACE_TEST_NO_DEBUG_AT_ALL) && defined(BOOST_MSVC))
+             // MSVC can not get function name withhout debug symbols even if it is exported
+             BOOST_TEST(st[i].name() != fv.name());
 @@ -276,7 +276,7 @@
      return static_cast<std::size_t>(file_size);
  }
@@ -38,8 +98,26 @@
      std::size_t address = 0;
      std::string hex_address;
      std::size_t pos = frame.find("0x");
+@@ -284,7 +284,7 @@
+     if (pos != std::string::npos) {
+         // Extract the hex address substring
+         hex_address = frame.substr(pos + 2); // Skip "0x"
+-        
++
+         // Convert hex string to std::size_t
+         std::stringstream ss;
+         ss << std::hex << hex_address;
+@@ -295,7 +295,7 @@
+ }
+ 
+ void test_relative_virtual_address(const char* file_path)
+-{   
++{
+     const auto frame = to_string(boost::stacktrace::stacktrace(0, 1).as_vector().front());
+ 
+     // Skip the test if the frame does not contain an address
 --- libs/stacktrace/include/boost/stacktrace/detail/libbacktrace_impls.hpp.old	2026-08-12 14:04:00.037349600 +0200
-+++ libs/stacktrace/include/boost/stacktrace/detail/libbacktrace_impls.hpp	2026-08-20 10:21:50.231634655 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/libbacktrace_impls.hpp	2026-08-24 21:06:16.000000000 +0200
 @@ -35,7 +35,7 @@
      std::size_t line;
  };
@@ -63,7 +141,7 @@
      pc_data& d = *static_cast<pc_data*>(data);
      if (d.filename && filename) {
          *d.filename = filename;
-@@ -129,7 +129,7 @@
+@@ -129,15 +129,15 @@
          if (state) {
              ::backtrace_pcinfo(
                  state,
@@ -72,7 +150,8 @@
                  boost::stacktrace::detail::libbacktrace_full_callback,
                  boost::stacktrace::detail::libbacktrace_error_callback,
                  &data
-@@ -137,7 +137,7 @@
+-            ) 
++            )
              ||
              ::backtrace_syminfo(
                  state,
@@ -239,7 +318,25 @@
      const std::size_t last = res.find_last_of(':');
      if (last == std::string::npos) {
 --- libs/stacktrace/include/boost/stacktrace/detail/frame_msvc.ipp.old	2026-08-12 14:04:00.035337900 +0200
-+++ libs/stacktrace/include/boost/stacktrace/detail/frame_msvc.ipp	2026-08-20 10:21:50.219355205 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/frame_msvc.ipp	2026-08-24 21:06:58.000000000 +0200
+@@ -262,7 +262,7 @@
+                     nullptr,
+                     &base
+                 ));
+-                
++
+                 if (res) {
+                     name[0] = '\0';
+                     size = 0;
+@@ -303,7 +303,7 @@
+                 }
+                 else if (res && size > 1) {
+                     module_name->assign(name, size - 1);
+-                }                
++                }
+             }
+         }
+ 
 @@ -402,8 +402,8 @@
              res += to_hex_array(addr).data();
  #else
