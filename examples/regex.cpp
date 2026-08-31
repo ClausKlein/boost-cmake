@@ -3,7 +3,7 @@
 #include <iterator>
 #include <string>
 
-int main() {
+auto main() -> int {
   using namespace boost;
 
   std::string s
@@ -26,7 +26,7 @@ int main() {
   constexpr int N{6};
   std::cout << "Words greater than " << N << " characters:\n";
   for (sregex_iterator i = words_begin; i != words_end; ++i) {
-    smatch match = *i;
+    const smatch& match = *i;
     std::string match_str = match.str();
     if (match_str.size() > N) {
       std::cout << "  " << match_str << '\n';

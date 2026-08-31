@@ -22,33 +22,228 @@ env:
   CTEST_OUTPUT_ON_FAILURE: 1
 
 jobs:
-  build:
+  unix:
     strategy:
       fail-fast: false
 
       matrix:
-        os: [macos-latest, ubuntu-26.04, windows-latest]
+        os:
+          - macos-latest
+          - ubuntu-26.04
 
-    runs-on: ${{ matrix.os }} # -latest
+        compiler:
+          - llvm-22
+          - gcc-16
+
+        variant:
+          - disabled_modules
+          - cxx_module
+          - cxx_module_std
+
+        exclude:
+          - os: macos-latest
+            compiler: gcc-16
+            variant: cxx_module_std
+
+    name: ${{ matrix.os }} / ${{ matrix.compiler }} / ${{ matrix.variant }}
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
       - name: Setup build environment
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "^4.3.4"
+          cmakeVersion: "^4.4.2"
           ninjaVersion: "~1.13.0"
+
+      - name: Setup Cpp
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: ${{ matrix.compiler }}
+
+      - name: Configure CMake custom preset
+        run: make ${{ matrix.variant }}
+
+      - name: Diagnose GCC long long configuration
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc-16'
+        shell: bash
+        run: |
+          printf '#include <boost/config.hpp>\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -Ibuild/Release/_deps/boost-src/libs/config/include \
+              -dM -E -x c++ - |
+            grep -E 'BOOST_(HAS|NO)_LONG_LONG|_GLIBCXX_USE_LONG_LONG|_GLIBCPP_USE_LONG_LONG|ULLONG_MAX' ||
+            true
+
+          printf '#include <limits.h>\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -dM -E -x c++ - |
+            grep -E 'ULLONG_MAX|ULONG_LONG_MAX|ULONGLONG_MAX' ||
+            true
+
+          printf '#include <boost/config.hpp>\nboost::ulong_long_type value{};\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -DBOOST_USE_MODULES \
+              -Ibuild/Release/_deps/boost-src/libs/config/include \
+              -fsyntax-only -x c++ -
+
+      - name: Diagnose Boost long long configuration
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc-16'
+        shell: /bin/bash --noprofile --norc -e -o pipefail {0}
+        run: |
+          boost_source="${PWD}/build/Release/_deps/boost-src"
+
+          boost_include_arguments=()
+          while IFS= read -r include_directory; do
+            boost_include_arguments+=("-I${include_directory}")
+          done < <(
+            find "${boost_source}/libs" \
+              -mindepth 2 -maxdepth 2 \
+              -type d -name include |
+            sort
+          )
+
+          printf '#include <boost/config.hpp>\nboost::ulong_long_type value{};\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -DBOOST_USE_MODULES \
+              "${boost_include_arguments[@]}" \
+              -fsyntax-only -x c++ -
+
+          printf '#include <boost/system/error_code.hpp>\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -DBOOST_USE_MODULES \
+              "${boost_include_arguments[@]}" \
+              -fsyntax-only -x c++ -
+
+          printf '#include <boost/coroutine/exceptions.hpp>\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -DBOOST_USE_MODULES \
+              "${boost_include_arguments[@]}" \
+              -fsyntax-only -x c++ -
+
+          printf '#include <boost/coroutine/exceptions.hpp>\n' |
+            "${CXX}" \
+              -std=c++23 -arch arm64 \
+              -DBOOST_USE_MODULES \
+              -DBOOST_CONTEXT_DYN_LINK= \
+              -DBOOST_CONTEXT_EXPORT=EXPORT \
+              -DBOOST_CONTEXT_NO_LIB= \
+              -DBOOST_COROUTINES_DYN_LINK \
+              -DBOOST_COROUTINES_SOURCE \
+              -DBOOST_COROUTINE_DYN_LINK \
+              -DBOOST_COROUTINE_NO_LIB \
+              -DBOOST_COROUTINE_SOURCE \
+              "${boost_include_arguments[@]}" \
+              -fsyntax-only -x c++ -
+
+      - name: Preprocess failing coroutine source
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc-16'
+        shell: /bin/bash --noprofile --norc -e -o pipefail {0}
+        run: |
+          boost_source="${PWD}/build/Release/_deps/boost-src"
+          source_file="${boost_source}/libs/coroutine/src/exceptions.cpp"
+          preprocessed="${RUNNER_TEMP}/boost-coroutine-exceptions.ii"
+
+          definitions=(
+            -DBOOST_USE_MODULES
+            -DBOOST_CONTEXT_DYN_LINK=
+            -DBOOST_CONTEXT_EXPORT=EXPORT
+            -DBOOST_CONTEXT_NO_LIB=
+            -DBOOST_COROUTINES_DYN_LINK
+            -DBOOST_COROUTINES_SOURCE
+            -DBOOST_COROUTINE_DYN_LINK
+            -DBOOST_COROUTINE_NO_LIB
+            -DBOOST_COROUTINE_SOURCE
+            -Dboost_coroutine_EXPORTS
+          )
+
+          includes=(
+            "-I${boost_source}/libs/coroutine/include"
+            -isystem "${boost_source}/libs/assert/include"
+            -isystem "${boost_source}/libs/config/include"
+            -isystem "${boost_source}/libs/context/include"
+            -isystem "${boost_source}/libs/core/include"
+            -isystem "${boost_source}/libs/throw_exception/include"
+            -isystem "${boost_source}/libs/mp11/include"
+            -isystem "${boost_source}/libs/pool/include"
+            -isystem "${boost_source}/libs/integer/include"
+            -isystem "${boost_source}/libs/type_traits/include"
+            -isystem "${boost_source}/libs/winapi/include"
+            -isystem "${boost_source}/libs/predef/include"
+            -isystem "${boost_source}/libs/smart_ptr/include"
+            -isystem "${boost_source}/libs/exception/include"
+            -isystem "${boost_source}/libs/tuple/include"
+            -isystem "${boost_source}/libs/move/include"
+            -isystem "${boost_source}/libs/system/include"
+            -isystem "${boost_source}/libs/compat/include"
+            -isystem "${boost_source}/libs/variant2/include"
+            -isystem "${boost_source}/libs/utility/include"
+            -isystem "${boost_source}/libs/io/include"
+            -isystem "${boost_source}/libs/preprocessor/include"
+          )
+
+          "${CXX}" \
+            "${definitions[@]}" \
+            "${includes[@]}" \
+            -fmodules-ts \
+            -O3 -DNDEBUG -std=c++23 -arch arm64 -fPIC \
+            -E "${source_file}" > "${preprocessed}"
+
+          grep -n -C 3 \
+            'typedef unsigned long long ulong_long_type' \
+            "${preprocessed}" ||
+            true
+
+          "${CXX}" \
+            "${definitions[@]}" \
+            "${includes[@]}" \
+            -O3 -DNDEBUG -std=c++23 -arch arm64 -fPIC \
+            -fmodules-ts \
+            -dM -E "${source_file}" |
+            grep -E \
+              'BOOST_(HAS|NO)_LONG_LONG|_GLIBCXX_USE_LONG_LONG|_GLIBCPP_USE_LONG_LONG|ULLONG_MAX' ||
+            true
+
+          "${CXX}" \
+            "${definitions[@]}" \
+            "${includes[@]}" \
+            -O3 -DNDEBUG -std=c++23 -arch arm64 -fPIC \
+            -fmodules-ts \
+            -fsyntax-only "${source_file}" ||
+            true
+
+      - name: Build CMake custom preset
+        run: make build
+
+      - name: Install custom project
+        run: make install
+
+      - name: Test custom examples
+        run: make ctest
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup build environment
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "^4.4.2"
+          ninjaVersion: "~1.13.0"
+
       - name: Setup MSVC
-        if: startsWith(matrix.os, 'windows')
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: x64
-
-      - name: Setup Cpp
-        if: matrix.os != 'windows-latest'
-        uses: aminya/setup-cpp@v1
-        with:
-          compiler: llvm-22
 
       - name: Configure CMake
         run: cmake --preset ${{env.BUILD_TYPE}} --log-level=VERBOSE -D BOOST_USE_MODULES=ON

@@ -1,0 +1,865 @@
+--- tools/cmake/include/BoostInstall.cmake.old	2026-08-20 18:18:48.000000000 +0200
++++ tools/cmake/include/BoostInstall.cmake	2026-08-25 10:30:11.000000000 +0200
+@@ -3,7 +3,7 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt
+ 
+-if(NOT CMAKE_VERSION VERSION_LESS 3.10)
++if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.10)
+   include_guard()
+ endif()
+ 
+@@ -337,6 +337,27 @@
+     string(APPEND CONFIG_INSTALL_DIR "-static")
+   endif()
+ 
++  set(__INSTALL_CXX_MODULES)
++  set(__EXPORT_CXX_MODULES_CONFIG_FILES)
++  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
++    get_target_property(INTERFACE_CXX_MODULE_SETS ${LIB} INTERFACE_CXX_MODULE_SETS)
++    if(INTERFACE_CXX_MODULE_SETS)
++      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_CXX_MODULE_SETS=${INTERFACE_CXX_MODULE_SETS}")
++      set(extrainstalldir "${CMAKE_INSTALL_DATADIR}/boost-${__VERSION}/${LIB}")
++      set(__INSTALL_CXX_MODULES FILE_SET ${INTERFACE_CXX_MODULE_SETS} DESTINATION ${extrainstalldir})
++      set(__EXPORT_CXX_MODULES_CONFIG_FILES CXX_MODULES_DIRECTORY .)
++    endif()
++  endif()
++
++  set(__INSTALL_HEADER_SETS)
++  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
++    get_target_property(INTERFACE_HEADER_SETS ${LIB} INTERFACE_HEADER_SETS)
++    if(INTERFACE_HEADER_SETS)
++      boost_message(DEBUG "boost_install_target: '${__TARGET}' has INTERFACE_HEADER_SETS=${INTERFACE_HEADER_SETS}")
++      set(__INSTALL_HEADER_SETS FILE_SET ${INTERFACE_HEADER_SETS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/boost-${__VERSION}")
++    endif()
++  endif()
++
+   install(TARGETS ${LIB} EXPORT ${LIB}-targets
+     # explicit destination specification required for 3.13, 3.14 no longer needs it
+     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+@@ -344,8 +365,17 @@
+     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+     PRIVATE_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
++    # NOTE: explicit needed if used starting with cmake v3.28!
++    # optional install: FILE_SET CXX_MODULES DESTINATION "${CMAKE_INSTALL_DATADIR}"
++    ${__INSTALL_CXX_MODULES}
++    # NOTE: explicit needed if used starting with cmake v3.23!
++    # Any module files from C++ modules from PUBLIC sources in a file set
++    # of type CXX_MODULES will be installed to the given DESTINATION.
++    # optional install: FILE_SET HEADERS
++    ${__INSTALL_HEADER_SETS}
+   )
+ 
++  # TODO(CK): what is this for?
+   export(TARGETS ${LIB} NAMESPACE Boost:: FILE export/${LIB}-targets.cmake)
+ 
+   if(MSVC)
+@@ -353,7 +383,7 @@
+       install(FILES $<TARGET_PDB_FILE:${LIB}> DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
+     endif()
+ 
+-    if(TYPE STREQUAL "STATIC_LIBRARY" AND NOT CMAKE_VERSION VERSION_LESS 3.15)
++    if(TYPE STREQUAL "STATIC_LIBRARY" AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
+       install(FILES "$<TARGET_FILE_DIR:${LIB}>/$<TARGET_FILE_PREFIX:${LIB}>$<TARGET_FILE_BASE_NAME:${LIB}>.pdb" DESTINATION ${CMAKE_INSTALL_LIBDIR} OPTIONAL)
+     endif()
+   endif()
+@@ -362,7 +392,11 @@
+     __boost_install_update_sources(${LIB} ${__EXTRA_DIRECTORY} ${__EXTRA_INSTALL_DIRECTORY})
+   endif()
+ 
+-  install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake)
++  install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake
++    # NOTE: explicit needed if used starting with cmake v3.28!
++    # optional install config packages for: FILE_SET CXX_MODULES
++    ${__EXPORT_CXX_MODULES_CONFIG_FILES}
++  )
+ 
+   set_target_properties(${LIB} PROPERTIES _boost_is_installed ON)
+ 
+@@ -491,7 +525,7 @@
+ 
+     # Header-only libraries are architecture-independent
+ 
+-    if(NOT CMAKE_VERSION VERSION_LESS 3.14)
++    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+ 
+       write_basic_package_version_file("${CONFIG_VERSION_FILE_NAME}" COMPATIBILITY SameMajorVersion ARCH_INDEPENDENT)
+ 
+@@ -589,6 +623,7 @@
+ 
+   endif()
+ 
++  set(extrainstalldir)
+   if(__EXTRA_DIRECTORY AND NOT BOOST_SKIP_INSTALL_RULES AND NOT CMAKE_SKIP_INSTALL_RULES)
+ 
+     # Extract the library name from the path, one component up from the extra directory
+--- tools/cmake/include/BoostRoot.cmake.old	2026-08-20 18:44:31.506539647 +0200
++++ tools/cmake/include/BoostRoot.cmake	2026-08-17 16:46:20.302542033 +0200
+@@ -123,7 +123,9 @@
+     set(BOOST_SKIP_INSTALL_RULES ON)
+   endif()
+ 
+-  set(BUILD_TESTING OFF)
++  if(NOT BOOST_BUILD_TESTING)
++    set(BUILD_TESTING OFF)
++  endif()
+ 
+ endif()
+ 
+@@ -303,6 +305,9 @@
+ 
+ endmacro()
+ 
++# C++20 modules
++option(BOOST_USE_MODULES "Build Boost as a collection of C++20 modules (unstable)" OFF)
++
+ #
+ 
+ file(GLOB __boost_libraries RELATIVE "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs" "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs/*/CMakeLists.txt" "${BOOST_SUPERPROJECT_SOURCE_DIR}/libs/numeric/*/CMakeLists.txt")
+--- libs/serialization/CMakeLists.txt.old	2026-08-19 11:08:14.000000000 +0200
++++ libs/serialization/CMakeLists.txt	2026-08-17 16:46:20.302748163 +0200
+@@ -6,6 +6,8 @@
+ 
+ project(boost_serialization VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
++set(CMAKE_UNITY_BUILD OFF)
++
+ add_library(boost_serialization
+   src/archive_exception.cpp
+   src/basic_archive.cpp
+--- libs/any/CMakeLists.txt.old	2026-08-18 19:27:38.000000000 +0200
++++ libs/any/CMakeLists.txt	2026-08-21 13:15:12.036761186 +0200
+@@ -2,25 +2,25 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required( VERSION 3.8...3.31 )
++cmake_minimum_required(VERSION 3.8...4.4)
+ project( boost_any VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX )
+ 
+-if (BOOST_USE_MODULES)
+-    add_library(boost_any)
++if(BOOST_USE_MODULES)
++    add_library(boost_any STATIC)
+     target_sources(boost_any PUBLIC
+-        FILE_SET modules_public
+-            TYPE CXX_MODULES
++        FILE_SET CXX_MODULES
++            BASE_DIRS modules
+             FILES modules/boost_any.cppm
+     )
+ 
+     target_compile_features(boost_any PUBLIC cxx_std_20)
+     target_compile_definitions(boost_any PUBLIC BOOST_USE_MODULES)
+-    set(__boost_cxx_standard ${CMAKE_CXX_STANDARD})
+-    if (NOT __boost_cxx_standard)
+-        set(__boost_cxx_standard 20)
++    if(NOT CMAKE_CXX_STANDARD)
++        set(CMAKE_CXX_STANDARD 20)
+     endif()
+-    if (CMAKE_CXX_COMPILER_IMPORT_STD AND ${__boost_cxx_standard} IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_any PRIVATE BOOST_ANY_USE_STD_MODULE)
++    if(CMAKE_CXX_MODULE_STD AND CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_definitions(boost_any PUBLIC BOOST_ANY_USE_STD_MODULE)
++        target_compile_features(boost_any PUBLIC cxx_std_23)
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+--- libs/any/test/cmake_subdir_test/CMakeLists.txt.old	2026-08-25 19:10:14.976204000 +0200
++++ libs/any/test/cmake_subdir_test/CMakeLists.txt	2026-08-25 21:02:47.414261244 +0200
+@@ -2,28 +2,31 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...4.0)
++cmake_minimum_required(VERSION 3.5...4.4)
+ 
+ project(any_subdir_test LANGUAGES CXX)
+ 
+ add_subdirectory(../../../assert boostorg/assert)
+-add_subdirectory(../../../core boostorg/core)
+ add_subdirectory(../../../config boostorg/config)
+ add_subdirectory(../../../container_hash boostorg/container_hash)
++add_subdirectory(../../../core boostorg/core)
+ add_subdirectory(../../../describe boostorg/describe)
+ add_subdirectory(../../../detail boostorg/detail)
+ add_subdirectory(../../../integer boostorg/integer)
+ add_subdirectory(../../../mp11 boostorg/mp11)
++add_subdirectory(../../../predef boostorg/predef)
+ add_subdirectory(../../../preprocessor boostorg/preprocessor)
++add_subdirectory(../../../smart_ptr boostorg/smart_ptr)
+ add_subdirectory(../../../throw_exception boostorg/throw_exception)
+ add_subdirectory(../../../type_index boostorg/type_index)
+ add_subdirectory(../../../type_traits boostorg/type_traits)
++add_subdirectory(../../../unordered boostorg/unordered)
+ 
+ add_subdirectory(../../ boostorg/any)
+ 
+ enable_testing()
+ 
+-if (BOOST_USE_MODULES)
++if(BOOST_USE_MODULES)
+     add_executable(boost_any_module_usage ../../modules/usage_sample.cpp)
+     target_link_libraries(boost_any_module_usage PRIVATE Boost::any)
+     add_test(NAME boost_any_module_usage COMMAND boost_any_module_usage)
+@@ -46,7 +49,7 @@
+     # any_test.cpp  # Ambiguous with modules, because all the anys now available
+ )
+ 
+-foreach (testsourcefile ${RUN_TESTS_SOURCES})
++foreach(testsourcefile ${RUN_TESTS_SOURCES})
+     get_filename_component(testname ${testsourcefile} NAME_WLE)
+     add_executable(${PROJECT_NAME}_${testname} ../${testsourcefile})
+     target_link_libraries(${PROJECT_NAME}_${testname} Boost::any Boost::core)
+--- libs/conversion/CMakeLists.txt.old	2026-08-18 18:13:14.105023000 +0200
++++ libs/conversion/CMakeLists.txt	2026-08-21 13:09:29.125413790 +0200
+@@ -4,23 +4,23 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...4.20)
++cmake_minimum_required(VERSION 3.5...4.4)
++
+ project(boost_conversion VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-if (BOOST_USE_MODULES)
+-  add_library(boost_conversion)
++if(BOOST_USE_MODULES)
++  add_library(boost_conversion STATIC)
+   target_sources(boost_conversion PUBLIC
+-    FILE_SET modules_public
+-    TYPE CXX_MODULES
+-    BASE_DIRS modules
+-    FILES ${CMAKE_CURRENT_LIST_DIR}/modules/boost_conversion.cppm
++    FILE_SET CXX_MODULES
++      BASE_DIRS modules
++      FILES modules/boost_conversion.cppm
+   )
+ 
+   target_compile_definitions(boost_conversion PUBLIC BOOST_USE_MODULES)
+   get_property(__standard TARGET boost_conversion PROPERTY CXX_STANDARD)
+-  if (__standard IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD AND CMAKE_CXX_MODULE_STD)
++  if(__standard IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD AND CMAKE_CXX_MODULE_STD)
+     target_compile_features(boost_conversion PUBLIC cxx_std_23)
+-    target_compile_definitions(boost_conversion PRIVATE BOOST_CONVERSION_USE_STD_MODULE)
++    target_compile_definitions(boost_conversion PUBLIC BOOST_CONVERSION_USE_STD_MODULE)
+     message(STATUS "Using `import std;`")
+   else()
+     target_compile_features(boost_conversion PUBLIC cxx_std_20)
+--- libs/dll/CMakeLists.txt.old	2026-08-18 17:46:16.508869000 +0200
++++ libs/dll/CMakeLists.txt	2026-08-18 17:33:54.245209309 +0200
+@@ -5,7 +5,7 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...4.20)
++cmake_minimum_required(VERSION 3.5...4.4)
+ 
+ project(boost_dll VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+@@ -51,14 +51,14 @@
+ 
+ # Default library
+ 
+-if (BOOST_USE_MODULES)
++if(BOOST_USE_MODULES)
+   add_library(boost_dll)
+   target_compile_definitions(boost_dll PUBLIC BOOST_USE_MODULES)
+ 
+   get_property(__standard TARGET boost_dll PROPERTY CXX_STANDARD)
+-  if (__standard IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD AND CMAKE_CXX_MODULE_STD)
++  if(__standard IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD AND CMAKE_CXX_MODULE_STD)
+     target_compile_features(boost_dll PUBLIC cxx_std_23)
+-    target_compile_definitions(boost_dll PRIVATE BOOST_DLL_USE_STD_MODULE)
++    target_compile_definitions(boost_dll PUBLIC BOOST_DLL_USE_STD_MODULE)
+     message(STATUS "Using `import std;`")
+   else()
+     target_compile_features(boost_dll PUBLIC cxx_std_20)
+@@ -80,7 +80,7 @@
+ 
+ add_library(Boost::dll ALIAS boost_dll)
+ target_include_directories(boost_dll ${__scope} include)
+-if (BOOST_DLL_USE_STD_FS)
++if(BOOST_DLL_USE_STD_FS)
+   target_link_libraries(boost_dll ${__scope} Boost::dll_std_fs)
+ else()
+   target_link_libraries(boost_dll ${__scope} Boost::dll_boost_fs)
+--- libs/lexical_cast/CMakeLists.txt.old	2026-08-17 21:14:44.138016000 +0200
++++ libs/lexical_cast/CMakeLists.txt	2026-08-21 13:09:18.668146913 +0200
+@@ -3,22 +3,26 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...4.0)
++cmake_minimum_required(VERSION 3.5...4.4)
+ 
+ project(boost_lexical_cast VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-
+-if (BOOST_USE_MODULES)
+-    add_library(boost_lexical_cast)
++if(BOOST_USE_MODULES)
++    add_library(boost_lexical_cast STATIC)
+     target_sources(boost_lexical_cast PUBLIC
+-        FILE_SET modules_public TYPE CXX_MODULES FILES
+-            ${CMAKE_CURRENT_LIST_DIR}/modules/boost_lexical_cast.cppm
++        FILE_SET CXX_MODULES
++            BASE_DIRS modules
++            FILES modules/boost_lexical_cast.cppm
+     )
+ 
+     target_compile_features(boost_lexical_cast PUBLIC cxx_std_20)
+     target_compile_definitions(boost_lexical_cast PUBLIC BOOST_USE_MODULES)
+-    if (CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_lexical_cast PRIVATE BOOST_LEXICAL_CAST_USE_STD_MODULE)
++    if(NOT CMAKE_CXX_STANDARD)
++        set(CMAKE_CXX_STANDARD 20)
++    endif()
++    if (CMAKE_CXX_MODULE_STD AND CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_definitions(boost_lexical_cast PUBLIC BOOST_LEXICAL_CAST_USE_STD_MODULE)
++        target_compile_features(boost_lexical_cast PUBLIC cxx_std_23)
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+--- libs/pfr/CMakeLists.txt.old	2026-08-18 19:29:18.000000000 +0200
++++ libs/pfr/CMakeLists.txt	2026-08-21 13:10:00.727689106 +0200
+@@ -4,20 +4,26 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...3.31)
++cmake_minimum_required(VERSION 3.28...4.4)
+ 
+ project(boost_pfr VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-if (BOOST_USE_MODULES)
+-    add_library(boost_pfr)
++if(BOOST_USE_MODULES)
++    add_library(boost_pfr STATIC)
+     target_sources(boost_pfr PUBLIC
+-        FILE_SET modules_public TYPE CXX_MODULES FILES modules/boost_pfr.cppm
++        FILE_SET CXX_MODULES
++            BASE_DIRS modules
++            FILES modules/boost_pfr.cppm
+     )
+ 
+     target_compile_features(boost_pfr PUBLIC cxx_std_20)
+     target_compile_definitions(boost_pfr PUBLIC BOOST_USE_MODULES)
+-    if (CMAKE_CXX_COMPILER_IMPORT_STD)
+-        target_compile_definitions(boost_pfr PRIVATE BOOST_PFR_USE_STD_MODULE)
++    if(NOT CMAKE_CXX_STANDARD)
++        set(CMAKE_CXX_STANDARD 20)
++    endif()
++    if(CMAKE_CXX_MODULE_STD AND CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_definitions(boost_pfr PUBLIC BOOST_PFR_USE_STD_MODULE)
++        target_compile_features(boost_pfr PUBLIC cxx_std_23)
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+@@ -31,11 +37,11 @@
+ add_library(Boost::pfr ALIAS boost_pfr)
+ 
+ enable_testing()
+-if (BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
++if(BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
+     add_subdirectory(test)
+ endif()
+ 
+-if (BOOST_USE_MODULES AND BUILD_TESTING)
++if(BOOST_USE_MODULES AND BUILD_TESTING)
+     add_executable(boost_pfr_module_usage modules/usage_sample.cpp)
+     target_link_libraries(boost_pfr_module_usage PRIVATE Boost::pfr)
+     add_test(NAME boost_pfr_module_usage COMMAND boost_pfr_module_usage)
+--- libs/type_index/CMakeLists.txt.old	2026-08-17 21:36:16.377197000 +0200
++++ libs/type_index/CMakeLists.txt	2026-08-21 13:10:17.933107868 +0200
+@@ -4,24 +4,26 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.5...4.20)
++cmake_minimum_required(VERSION 3.5...4.4)
+ 
+ project(boost_type_index VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+-if (BOOST_USE_MODULES)
+-    add_library(boost_type_index)
+-    target_sources(boost_type_index
+-      PUBLIC
++if(BOOST_USE_MODULES)
++    add_library(boost_type_index STATIC)
++    target_sources(boost_type_index PUBLIC
+         FILE_SET CXX_MODULES
+-        BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+-        FILES "${CMAKE_CURRENT_SOURCE_DIR}/modules/boost_type_index.cppm"
++            BASE_DIRS modules
++            FILES "modules/boost_type_index.cppm"
+     )
+ 
+     target_compile_features(boost_type_index PUBLIC cxx_std_20)
+     target_compile_definitions(boost_type_index PUBLIC BOOST_USE_MODULES)
+-    if ((CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD) AND CMAKE_CXX_MODULE_STD)
+-        target_compile_features(boost_type_index PRIVATE cxx_std_23)
+-        target_compile_definitions(boost_type_index PRIVATE BOOST_TYPE_INDEX_USE_STD_MODULE)
++    if(NOT CMAKE_CXX_STANDARD)
++        set(CMAKE_CXX_STANDARD 20)
++    endif()
++    if(CMAKE_CXX_MODULE_STD AND CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
++        target_compile_features(boost_type_index PUBLIC cxx_std_23)
++        target_compile_definitions(boost_type_index PUBLIC BOOST_TYPE_INDEX_USE_STD_MODULE)
+         message(STATUS "Using `import std;`")
+     else()
+         message(STATUS "`import std;` is not available")
+--- libs/any/modules/boost_any.cppm.old	2026-08-22 21:56:56.328322891 +0200
++++ libs/any/modules/boost_any.cppm	2026-08-22 21:17:53.838820112 +0200
+@@ -11,7 +11,9 @@
+ #include <boost/assert.hpp>
+ #include <boost/config.hpp>
+ #include <boost/throw_exception.hpp>
+-#include <boost/type_index.hpp>
++
++// Any-specific global module fragment includes.
++// Do not include <boost/type_index.hpp> here!
+ 
+ #ifdef BOOST_ANY_USE_STD_MODULE
+ import std;
+@@ -27,6 +29,8 @@
+ 
+ export module boost.any;
+ 
++import boost.type_index;
++
+ #ifdef __clang__
+ #   pragma clang diagnostic ignored "-Winclude-angled-in-module-purview"
+ #endif
+--- libs/lexical_cast/include/boost/lexical_cast/detail/lcast_precision.hpp.old	2026-08-19 07:56:48.000000000 +0200
++++ libs/lexical_cast/include/boost/lexical_cast/detail/lcast_precision.hpp	2026-08-19 08:19:30.055994324 +0200
+@@ -10,6 +10,8 @@
+ 
+ #include <boost/lexical_cast/detail/config.hpp>
+ 
++#include <climits> // ULONG_MAX
++
+ #if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
+ 
+ #ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
+@@ -18,9 +20,8 @@
+ #   pragma once
+ #endif
+ 
+-#include <climits>
+ #include <ios>
+-#include <limits>
++#include <boost/limits.hpp>
+ 
+ #endif  // #ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
+ 
+--- libs/lexical_cast/include/boost/lexical_cast/detail/lcast_unsigned_converters.hpp.old	2026-08-19 07:24:00.637556000 +0200
++++ libs/lexical_cast/include/boost/lexical_cast/detail/lcast_unsigned_converters.hpp	2026-08-19 08:17:06.236665016 +0200
+@@ -20,6 +20,8 @@
+ 
+ #include <boost/lexical_cast/detail/config.hpp>
+ 
++#include <climits> // CHAR_MAX
++
+ #if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
+ 
+ #ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
+@@ -28,7 +30,6 @@
+ #   pragma once
+ #endif
+ 
+-#include <climits>
+ #include <cstddef>
+ #include <string>
+ #include <cstring>
+--- libs/pfr/include/boost/pfr/detail/io.hpp.old	2026-08-19 13:14:43.547240000 +0200
++++ libs/pfr/include/boost/pfr/detail/io.hpp	2026-08-19 13:16:03.424081168 +0200
+@@ -51,6 +51,7 @@
+ struct print_impl {
+     template <class Stream, class T>
+     static void print (Stream& out, const T& value) {
++        using std::operator<<;
+         if (!!I) out << ", ";
+         out << detail::quoted_helper(boost::pfr::detail::sequence_tuple::get<I>(value));
+         print_impl<I + 1, N>::print(out, value);
+@@ -67,6 +68,7 @@
+ struct read_impl {
+     template <class Stream, class T>
+     static void read (Stream& in, const T& value) {
++        using std::operator>>;
+         char ignore = {};
+         if (!!I) {
+             in >> ignore;
+--- libs/stacktrace/CMakeLists.txt.old	2026-08-17 21:21:54.022237000 +0200
++++ libs/stacktrace/CMakeLists.txt	2026-08-25 11:05:25.242001386 +0200
+@@ -3,7 +3,7 @@
+ # Distributed under the Boost Software License, Version 1.0.
+ # https://www.boost.org/LICENSE_1_0.txt
+ 
+-cmake_minimum_required(VERSION 3.8...4.20)
++cmake_minimum_required(VERSION 3.8...4.4)
+ 
+ project(boost_stacktrace VERSION "${BOOST_SUPERPROJECT_VERSION}" LANGUAGES CXX)
+ 
+@@ -11,14 +11,14 @@
+   target_sources(${name}
+     PUBLIC
+       FILE_SET CXX_MODULES
+-      BASE_DIRS "${CMAKE_CURRENT_LIST_DIR}/modules"
+-      FILES "${CMAKE_CURRENT_LIST_DIR}/modules/${name}.cppm"
++        BASE_DIRS modules
++        FILES "modules/${name}.cppm"
+   )
+   target_compile_definitions(${name} PUBLIC BOOST_USE_MODULES)
+ 
+   if(${import_std})
+     target_compile_features(${name} PUBLIC cxx_std_23)
+-    target_compile_definitions(${name} PRIVATE BOOST_STACKTRACE_USE_STD_MODULE)
++    target_compile_definitions(${name} PUBLIC BOOST_STACKTRACE_USE_STD_MODULE)
+   else()
+     target_compile_features(${name} PUBLIC cxx_std_20)
+   endif()
+@@ -55,7 +55,7 @@
+       ${defs}
+   )
+ 
+-  if (add_module)
++  if(add_module)
+     stacktrace_add_module(boost_stacktrace_${suffix} ${import_std})
+   else()
+     target_sources(boost_stacktrace_${suffix}
+@@ -99,7 +99,7 @@
+ stacktrace_check(BOOST_STACKTRACE_HAS_WINDBG_CACHED has_windbg_cached.cpp "${CMAKE_CURRENT_SOURCE_DIR}/../config/include" "dbgeng;ole32")
+ 
+ set(_default_from_exception ON)
+-if (CMAKE_CXX_PLATFORM_ID MATCHES "Cygwin")
++if(CMAKE_CXX_PLATFORM_ID MATCHES "Cygwin")
+   set(_default_from_exception OFF)
+ endif()
+ 
+@@ -139,7 +139,7 @@
+   if(NOT CMAKE_CXX_STANDARD)
+     set(CMAKE_CXX_STANDARD 20)
+   endif()
+-  if ((CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD) AND CMAKE_CXX_MODULE_STD)
++  if((CMAKE_CXX_STANDARD IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD) AND CMAKE_CXX_MODULE_STD)
+     message(STATUS "Using `import std;`")
+     set(__import_std ON)
+   else()
+@@ -163,12 +163,12 @@
+ # boost_stacktrace, default library
+ 
+ if(BOOST_USE_MODULES)
+-  add_library(boost_stacktrace)
++  add_library(boost_stacktrace STATIC)
+   stacktrace_add_module(boost_stacktrace ${__import_std})
+   set(__scope PUBLIC)
+ 
+   foreach(backend noop backtrace addr2line basic windbg windbg_cached)
+-    if (TARGET boost_stacktrace_${backend})
++    if(TARGET boost_stacktrace_${backend})
+       target_compile_definitions(boost_stacktrace_${backend} INTERFACE BOOST_STACKTRACE_BACKEND_MODULE=${backend})
+     endif()
+   endforeach()
+--- libs/stacktrace/test/test.cpp.old	2026-08-12 14:04:00.047147800 +0200
++++ libs/stacktrace/test/test.cpp	2026-08-24 21:11:15.000000000 +0200
+@@ -85,7 +85,7 @@
+ 
+     BOOST_TEST(ss1.str().find(" 1# ") != std::string::npos);
+     BOOST_TEST(ss2.str().find(" 1# ") != std::string::npos);
+-    
++
+     BOOST_TEST(ss1.str().find(" in ") != std::string::npos);
+     BOOST_TEST(ss2.str().find(" in ") != std::string::npos);
+ 
+@@ -212,7 +212,7 @@
+         BOOST_TEST(fv);
+         if (i > 1 && i < min_size - 3) {       // Begin ...and end of the trace may match, skipping
+             BOOST_TEST(st[i] != fv);
+-            
++
+ #if !(defined(BOOST_STACKTRACE_TEST_NO_DEBUG_AT_ALL) && defined(BOOST_MSVC))
+             // MSVC can not get function name withhout debug symbols even if it is exported
+             BOOST_TEST(st[i].name() != fv.name());
+@@ -276,7 +276,7 @@
+     return static_cast<std::size_t>(file_size);
+ }
+ 
+-uintptr_t get_address_from_frame(const std::string& frame) {
++std::uintptr_t get_address_from_frame(const std::string& frame) {
+     std::size_t address = 0;
+     std::string hex_address;
+     std::size_t pos = frame.find("0x");
+@@ -284,7 +284,7 @@
+     if (pos != std::string::npos) {
+         // Extract the hex address substring
+         hex_address = frame.substr(pos + 2); // Skip "0x"
+-        
++
+         // Convert hex string to std::size_t
+         std::stringstream ss;
+         ss << std::hex << hex_address;
+@@ -295,7 +295,7 @@
+ }
+ 
+ void test_relative_virtual_address(const char* file_path)
+-{   
++{
+     const auto frame = to_string(boost::stacktrace::stacktrace(0, 1).as_vector().front());
+ 
+     // Skip the test if the frame does not contain an address
+--- libs/stacktrace/include/boost/stacktrace/detail/libbacktrace_impls.hpp.old	2026-08-12 14:04:00.037349600 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/libbacktrace_impls.hpp	2026-08-24 21:06:16.000000000 +0200
+@@ -35,7 +35,7 @@
+     std::size_t line;
+ };
+ 
+-inline void libbacktrace_syminfo_callback(void *data, uintptr_t /*pc*/, const char *symname, uintptr_t /*symval*/, uintptr_t /*symsize*/) {
++inline void libbacktrace_syminfo_callback(void *data, std::uintptr_t /*pc*/, const char *symname, std::uintptr_t /*symval*/, std::uintptr_t /*symsize*/) {
+     pc_data& d = *static_cast<pc_data*>(data);
+     if (d.function && symname) {
+         *d.function = symname;
+@@ -43,11 +43,11 @@
+ }
+ 
+ // Old versions of libbacktrace have different signature for the callback
+-inline void libbacktrace_syminfo_callback(void *data, uintptr_t pc, const char *symname, uintptr_t symval) {
++inline void libbacktrace_syminfo_callback(void *data, std::uintptr_t pc, const char *symname, std::uintptr_t symval) {
+     boost::stacktrace::detail::libbacktrace_syminfo_callback(data, pc, symname, symval, 0);
+ }
+ 
+-inline int libbacktrace_full_callback(void *data, uintptr_t /*pc*/, const char *filename, int lineno, const char *function) {
++inline int libbacktrace_full_callback(void *data, std::uintptr_t /*pc*/, const char *filename, int lineno, const char *function) {
+     pc_data& d = *static_cast<pc_data*>(data);
+     if (d.filename && filename) {
+         *d.filename = filename;
+@@ -129,15 +129,15 @@
+         if (state) {
+             ::backtrace_pcinfo(
+                 state,
+-                reinterpret_cast<uintptr_t>(addr),
++                reinterpret_cast<std::uintptr_t>(addr),
+                 boost::stacktrace::detail::libbacktrace_full_callback,
+                 boost::stacktrace::detail::libbacktrace_error_callback,
+                 &data
+-            ) 
++            )
+             ||
+             ::backtrace_syminfo(
+                 state,
+-                reinterpret_cast<uintptr_t>(addr),
++                reinterpret_cast<std::uintptr_t>(addr),
+                 boost::stacktrace::detail::libbacktrace_syminfo_callback,
+                 boost::stacktrace::detail::libbacktrace_error_callback,
+                 &data
+@@ -176,7 +176,7 @@
+     if (state) {
+         ::backtrace_pcinfo(
+             state,
+-            reinterpret_cast<uintptr_t>(addr),
++            reinterpret_cast<std::uintptr_t>(addr),
+             boost::stacktrace::detail::libbacktrace_full_callback,
+             boost::stacktrace::detail::libbacktrace_error_callback,
+             &data
+@@ -184,7 +184,7 @@
+         ||
+         ::backtrace_syminfo(
+             state,
+-            reinterpret_cast<uintptr_t>(addr),
++            reinterpret_cast<std::uintptr_t>(addr),
+             boost::stacktrace::detail::libbacktrace_syminfo_callback,
+             boost::stacktrace::detail::libbacktrace_error_callback,
+             &data
+@@ -213,7 +213,7 @@
+     if (state) {
+         ::backtrace_pcinfo(
+             state,
+-            reinterpret_cast<uintptr_t>(addr_),
++            reinterpret_cast<std::uintptr_t>(addr_),
+             boost::stacktrace::detail::libbacktrace_full_callback,
+             boost::stacktrace::detail::libbacktrace_error_callback,
+             &data
+@@ -235,7 +235,7 @@
+     if (state) {
+         ::backtrace_pcinfo(
+             state,
+-            reinterpret_cast<uintptr_t>(addr_),
++            reinterpret_cast<std::uintptr_t>(addr_),
+             boost::stacktrace::detail::libbacktrace_full_callback,
+             boost::stacktrace::detail::libbacktrace_error_callback,
+             &data
+--- libs/stacktrace/include/boost/stacktrace/detail/addr_base.hpp.old	2026-08-20 10:23:42.511592557 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/addr_base.hpp	2026-08-20 10:55:20.396558358 +0200
+@@ -15,25 +15,26 @@
+ #if !defined(BOOST_STACKTRACE_INTERFACE_UNIT) && !defined(BOOST_STACKTRACE_USE_STD_MODULE)
+ #include <fstream>
+ #include <sstream>
+-#include <cstdint>
+-#include <cstdlib>
++#include <cstdint>      // std::uintptr_t
++#include <stdexcept>
++#include <string>
+ #endif // !defined(BOOST_STACKTRACE_INTERFACE_UNIT) && !defined(BOOST_STACKTRACE_USE_STD_MODULE)
+ 
+ namespace boost { namespace stacktrace { namespace detail {
+ 
+ struct mapping_entry_t {
+-    uintptr_t start = 0;
+-    uintptr_t end = 0;
+-    uintptr_t offset_from_base = 0;
++    std::uintptr_t start = 0;
++    std::uintptr_t end = 0;
++    std::uintptr_t offset_from_base = 0;
+ 
+     inline bool contains_addr(const void* addr) const {
+-        uintptr_t addr_uint = reinterpret_cast<uintptr_t>(addr);
++        std::uintptr_t addr_uint = reinterpret_cast<std::uintptr_t>(addr);
+         return addr_uint >= start && addr_uint < end;
+     }
+ };
+ 
+-inline uintptr_t hex_str_to_int(const std::string& str) {
+-    uintptr_t out;
++inline std::uintptr_t hex_str_to_int(const std::string& str) {
++    std::uintptr_t out;
+     std::stringstream ss;
+     ss << std::hex << str;
+     ss >> out;
+@@ -70,12 +71,12 @@
+         mapping.end = hex_str_to_int(mapping_end_str);
+         mapping.offset_from_base = hex_str_to_int(offset_from_base_str);
+         return mapping;
+-    } catch(std::invalid_argument& e) {
++    } catch(const std::invalid_argument& e) {
+         return mapping_entry_t{};
+     }
+ }
+ 
+-inline uintptr_t get_own_proc_addr_base(const void* addr) {
++inline std::uintptr_t get_own_proc_addr_base(const void* addr) {
+     std::ifstream maps_file("/proc/self/maps");
+     for (std::string line; std::getline(maps_file, line); ) {
+         const mapping_entry_t mapping = parse_proc_maps_line(line);
+--- libs/stacktrace/include/boost/stacktrace/detail/frame_unwind.ipp.old	2026-08-12 14:04:00.035337900 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/frame_unwind.ipp	2026-08-20 10:21:50.242597642 +0200
+@@ -50,7 +50,7 @@
+             Base::res = to_hex_array(addr).data();
+ #else
+             const auto addr_base = boost::stacktrace::detail::get_own_proc_addr_base(addr);
+-            Base::res = to_hex_array(reinterpret_cast<uintptr_t>(addr) - addr_base).data();
++            Base::res = to_hex_array(reinterpret_cast<std::uintptr_t>(addr) - addr_base).data();
+ #endif
+         }
+ 
+--- libs/stacktrace/include/boost/stacktrace/detail/addr2line_impls.hpp.old	2026-08-19 11:39:49.341239746 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/addr2line_impls.hpp	2026-08-20 10:21:50.194082770 +0200
+@@ -164,11 +164,11 @@
+ }
+ 
+ inline std::string source_location(const void* addr, bool position_independent) {
+-    uintptr_t addr_base = 0;
++    std::uintptr_t addr_base = 0;
+     if (position_independent) {
+         addr_base = boost::stacktrace::detail::get_own_proc_addr_base(addr);
+     }
+-    const void* offset = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(addr) - addr_base);
++    const void* offset = reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(addr) - addr_base);
+     std::string source_line = boost::stacktrace::detail::addr2line("-Cpe", reinterpret_cast<const void*>(offset));
+     if (source_line.empty() || source_line[0] == '?') {
+         return "";
+@@ -211,11 +211,11 @@
+ typedef to_string_impl_base<to_string_using_addr2line> to_string_impl;
+ 
+ inline std::string name(const void* addr, bool position_independent) {
+-    uintptr_t addr_base = 0;
++    std::uintptr_t addr_base = 0;
+     if(position_independent){
+         addr_base = boost::stacktrace::detail::get_own_proc_addr_base(addr);
+     }
+-    const void* offset = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(addr) - addr_base);
++    const void* offset = reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(addr) - addr_base);
+     std::string res = boost::stacktrace::detail::addr2line("-fe", offset);
+     res = res.substr(0, res.find_last_of('\n'));
+     res = boost::core::demangle(res.c_str());
+@@ -238,11 +238,11 @@
+ 
+ inline std::string source_file(const void* addr, bool position_independent) {
+     std::string res;
+-    uintptr_t addr_base = 0;
++    std::uintptr_t addr_base = 0;
+     if(position_independent){
+         addr_base = boost::stacktrace::detail::get_own_proc_addr_base(addr);
+     }
+-    const void* offset = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(addr) - addr_base);
++    const void* offset = reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(addr) - addr_base);
+     res = boost::stacktrace::detail::addr2line("-e", offset);
+     res = res.substr(0, res.find_last_of(':'));
+     if (res == "??") {
+@@ -254,11 +254,11 @@
+ 
+ inline std::size_t source_line(const void* addr, bool position_independent) {
+     std::size_t line_num = 0;
+-    uintptr_t addr_base = 0;
++    std::uintptr_t addr_base = 0;
+     if(position_independent){
+         addr_base = boost::stacktrace::detail::get_own_proc_addr_base(addr);
+     }
+-    const void* offset = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(addr) - addr_base);
++    const void* offset = reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(addr) - addr_base);
+     std::string res = boost::stacktrace::detail::addr2line("-e", offset);
+     const std::size_t last = res.find_last_of(':');
+     if (last == std::string::npos) {
+--- libs/stacktrace/include/boost/stacktrace/detail/frame_msvc.ipp.old	2026-08-12 14:04:00.035337900 +0200
++++ libs/stacktrace/include/boost/stacktrace/detail/frame_msvc.ipp	2026-08-24 21:06:58.000000000 +0200
+@@ -262,7 +262,7 @@
+                     nullptr,
+                     &base
+                 ));
+-                
++
+                 if (res) {
+                     name[0] = '\0';
+                     size = 0;
+@@ -303,7 +303,7 @@
+                 }
+                 else if (res && size > 1) {
+                     module_name->assign(name, size - 1);
+-                }                
++                }
+             }
+         }
+ 
+@@ -402,8 +402,8 @@
+             res += to_hex_array(addr).data();
+ #else
+             // Get own base address
+-            const uintptr_t base_addr = get_own_proc_addr_base(addr);
+-            res += to_hex_array(reinterpret_cast<uintptr_t>(addr) - base_addr).data();
++            const std::uintptr_t base_addr = get_own_proc_addr_base(addr);
++            res += to_hex_array(reinterpret_cast<std::uintptr_t>(addr) - base_addr).data();
+ #endif
+         }
+ 
+--- libs/stacktrace/modules/boost_stacktrace_dump.cppm.old	2026-08-19 18:02:37.092932000 +0200
++++ libs/stacktrace/modules/boost_stacktrace_dump.cppm	2026-08-20 10:53:52.185787423 +0200
+@@ -15,13 +15,17 @@
+ #include <boost/predef.h>
+ 
+ #if !defined(BOOST_STACKTRACE_USE_STD_MODULE)
+-#include <stdio.h>
++#include <cstdio>
++#include <cstdint> // std::uintptr_t
+ #endif
+ 
+ #include <fcntl.h>
+-#include <unwind.h>
+ #include <sys/stat.h>
+ 
++#if !defined(BOOST_WINDOWS)
++#   include <unwind.h>
++#endif
++
+ #define BOOST_STACKTRACE_INTERFACE_UNIT
+ #define BOOST_STACKTRACE_LINK
+ 
