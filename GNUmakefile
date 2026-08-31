@@ -51,10 +51,11 @@ all: ctest ## Make all with cmake with cusomized workflow preset in verbose mode
 
 # NOTE: Works only with clang v22.1.8 with different C++26 standard and cmake v4.4.x! CK
 examples: # XXX install ## Build examples as standalone project to test installed config package
-	cmake -S examples -B build -G Ninja --log-level=VERBOSE --fresh \
-	-D CMAKE_CXX_MODULE_STD=ON -D CMAKE_CXX_STANDARD=26 \
-	-D BOOST_USE_MODULES=ON \
-		--debug-find-pkg=Boost
+	cmake -S examples -B build -G Ninja -D CMAKE_MESSAGE_LOG_LEVEL=VERBOSE --fresh \
+	    -D BOOST_USE_MODULES=ON \
+	    -D CMAKE_CXX_MODULE_STD=ON \
+	    -D CMAKE_CXX_STANDARD=26 \
+	    --debug-find-pkg=Boost
 	ninja -C build test -v
 
 cxx_module: CMakePresets.json ## Run cmake workflow preset Release with BOOST_USE_MODULES
@@ -86,7 +87,7 @@ build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
 	        ;; \
 	esac; \
 	cmake --version; \
-	cmake --preset Release --log-level=VERBOSE \
+	cmake --preset Release --log-level=VERBOSE --fresh \
 	    -D BOOST_USE_MODULES=ON \
 	    -D CMAKE_CXX_MODULE_STD=ON \
 	    -D CMAKE_CXX_STANDARD=23 \
@@ -103,10 +104,12 @@ install: build ## Install the cmake config package
 	# XXX cmake --install build/Release --config Release --prefix=${HOME}/.local/
 
 clean: ## Clean build tree
-	-cmake --build --preset Release --target clean
+		-cmake --build --preset Release --target clean
 
 disabled_modules: ## Build with disabled CXX_SCAN_FOR_MODULES
-	cmake --preset Release -D CMAKE_CXX_SCAN_FOR_MODULES=OFF -D BOOST_USE_MODULES=OFF
+	cmake --preset Release --log-level=VERBOSE --fresh \
+	    -D BOOST_USE_MODULES=OFF \
+	    -D CMAKE_CXX_SCAN_FOR_MODULES=OFF
 
 distclean: ## Make it really clean
 	rm -rf build stagedir .cache compile_commands.json

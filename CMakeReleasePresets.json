@@ -27,6 +27,7 @@
         "CMAKE_DEBUG_POSTFIX": "-d",
         "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CMAKE_INSTALL_MESSAGE": "LAZY",
+        "CMAKE_MESSAGE_LOG_LEVEL": "VERBOSE",
         "CMAKE_SKIP_INSTALL_RULES": false
       },
       "environment": {
