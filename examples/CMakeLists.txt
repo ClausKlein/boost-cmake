@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30...4.4)
+cmake_minimum_required(VERSION 3.30...4.5)
 
 include(../cmake/prelude.cmake)
 
@@ -12,6 +12,7 @@ enable_testing()
 if(PROJECT_IS_TOP_LEVEL)
     include(../cmake/ccache.cmake)
 
+    find_package(Threads)
     # NO! find_package(magic_enum)
 
     set(CMAKE_SKIP_TEST_ALL_DEPENDENCY OFF)
@@ -169,7 +170,8 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             "${CMAKE_CURRENT_BINARY_DIR}/find-package-test" #
             --build-generator "${CMAKE_GENERATOR}" #
             --build-makeprogram "${CMAKE_MAKE_PROGRAM}" #
-            --build-options "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+            --build-options #
+            "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
             "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DCMAKE_CXX_MODULE_STD=${CMAKE_CXX_MODULE_STD}"
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"

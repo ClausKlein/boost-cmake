@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28...4.4)
+cmake_minimum_required(VERSION 3.28...4.5)
 
 project(gcc_typeinfo_module_reproducer LANGUAGES CXX)
 
