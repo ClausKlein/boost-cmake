@@ -40,10 +40,10 @@ jobs:
           - cxx_module
           - cxx_module_std
 
-        exclude:
-          - os: macos-latest
-            compiler: gcc-16
-            variant: cxx_module_std
+        # exclude:
+        #   - os: macos-latest
+        #     compiler: gcc-16
+        #     variant: cxx_module_std
 
     name: ${{ matrix.os }} / ${{ matrix.compiler }} / ${{ matrix.variant }}
     runs-on: ${{ matrix.os }}
