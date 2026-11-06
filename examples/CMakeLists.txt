@@ -171,7 +171,7 @@ if(NOT PROJECT_IS_TOP_LEVEL)
             --build-generator "${CMAKE_GENERATOR}" #
             --build-makeprogram "${CMAKE_MAKE_PROGRAM}" #
             --build-options #
-            "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+            "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}" #
             "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DCMAKE_CXX_MODULE_STD=${CMAKE_CXX_MODULE_STD}"
             "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}"
