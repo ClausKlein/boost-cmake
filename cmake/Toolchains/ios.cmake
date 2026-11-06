@@ -10,13 +10,9 @@
 #   If set manually, this will force the use of a specific SDK version
 
 set(IPHONEOS_DEPLOYMENT_TARGET 9.0)
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
-)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
-)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}")
 set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
 # Standard settings
@@ -27,9 +23,7 @@ if(CMAKE_GENERATOR STREQUAL "Xcode")
     set(CMAKE_MACOSX_BUNDLE YES)
 endif()
 set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO")
-set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET
-    ${IPHONEOS_DEPLOYMENT_TARGET}
-)
+set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${IPHONEOS_DEPLOYMENT_TARGET})
 
 # Setup iOS platform unless specified manually with IOS_PLATFORM
 if(NOT DEFINED IOS_PLATFORM)
@@ -59,18 +53,10 @@ if(NOT CMAKE_IOS_SDK_ROOT)
     message(STATUS "Toolchain using default iOS SDK: ${CMAKE_IOS_SDK_ROOT}")
 endif()
 
-set(CMAKE_IOS_SDK_ROOT
-    ${CMAKE_IOS_SDK_ROOT}
-    CACHE PATH
-    "Location of the selected iOS SDK"
-)
+set(CMAKE_IOS_SDK_ROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Location of the selected iOS SDK")
 
 # Set the sysroot default to the most recent SDK
-set(CMAKE_OSX_SYSROOT
-    ${CMAKE_IOS_SDK_ROOT}
-    CACHE PATH
-    "Sysroot used for iOS support"
-)
+set(CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
 
 # set the architecture for iOS
 if(IOS_PLATFORM STREQUAL "OS")
@@ -81,19 +67,10 @@ else()
     set(IOS_ARCH "i386;x86_64")
 endif()
 
-set(CMAKE_OSX_ARCHITECTURES
-    "${IOS_ARCH}"
-    CACHE string
-    "Build architecture for iOS"
-)
+set(CMAKE_OSX_ARCHITECTURES "${IOS_ARCH}" CACHE string "Build architecture for iOS")
 set(CMAKE_ASM_FLAGS "" CACHE STRING "" FORCE)
 foreach(arch ${IOS_ARCH})
-    set(CMAKE_ASM_FLAGS
-        "${CMAKE_ASM_FLAGS} -arch ${arch}"
-        CACHE STRING
-        ""
-        FORCE
-    )
+    set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -arch ${arch}" CACHE STRING "" FORCE)
 endforeach()
 
 # Set the find root to the iOS developer roots and to user defined paths

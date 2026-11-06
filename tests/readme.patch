@@ -1,0 +1,38 @@
+diff --git a/tests/README.md b/tests/README.md
+index 35754fb..23336b3 100644
+--- a/tests/README.md
++++ b/tests/README.md
+@@ -10,8 +10,33 @@ cmake -S . -B build -G Ninja \
+     -D CMAKE_CXX_COMPILER_LAUNCHER=
+ 
+ cmake --build build --verbose
++
++Change Dir: '/Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/build'
++
++Run Build Command(s): /Users/clausklein/.local/bin/ninja -v
++[1/2] /usr/local/bin/g++-16   -std=c++23 -MD -MT CMakeFiles/typeinfo_module_test.dir/main.cpp.o -MF CMakeFiles/typeinfo_module_test.dir/main.cpp.o.d -fmodules-ts -fmodule-mapper=CMakeFiles/typeinfo_module_test.dir/main.cpp.o.modmap -MD -fdeps-format=p1689r5 -x c++ -o CMakeFiles/typeinfo_module_test.dir/main.cpp.o -c /Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/main.cpp
++FAILED: [code=1] CMakeFiles/typeinfo_module_test.dir/main.cpp.o
++/usr/local/bin/g++-16   -std=c++23 -MD -MT CMakeFiles/typeinfo_module_test.dir/main.cpp.o -MF CMakeFiles/typeinfo_module_test.dir/main.cpp.o.d -fmodules-ts -fmodule-mapper=CMakeFiles/typeinfo_module_test.dir/main.cpp.o.modmap -MD -fdeps-format=p1689r5 -x c++ -o CMakeFiles/typeinfo_module_test.dir/main.cpp.o -c /Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/main.cpp
++In module m, imported at /Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/main.cpp:2:
++/Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/m.cppm: In instantiation of 'void detail@m() [with T = int]':
++/Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/m.cppm:12:12:   required from 'void function@m() [with T = int]'
++   12 |   detail<T>();
++      |   ~~~~~~~~~^~
++/Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/main.cpp:5:16:   required from here
++    5 |   function<int>();
++      |   ~~~~~~~~~~~~~^~
++/Users/clausklein/Workspace/cpp/cxx20/boost-cmake/tests/m.cppm:8:9: error: must '#include <typeinfo>' before using 'typeid'
++    6 |
++  +++ |+#include <typeinfo>
++    7 | template <class T> void detail() {
++    8 |   (void)typeid(T);
++      |         ^~~~~~~~~
++ninja: build stopped: subcommand failed.
++
+ ```
+ 
++#### the original problem was
++
+ ```bash
+ root@23cd2d07fb08:/src# cmake --build --preset Release
+ [0/2] Re-checking globbed directories...

@@ -20,15 +20,14 @@ include(GNUInstallDirs)
 include(cmake/CPM.cmake)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" NO)
+
 set(BOOST_INCLUDE_LIBRARIES any pfr beast filesystem headers)
 set(BOOST_USE_MODULES ON)
 set(Boost_VERBOSE ON)
-CPMAddPackage("gh:ClausKlein/boost-cmake#v1.91.0-rc3")
+CPMAddPackage("gh:ClausKlein/boost-cmake#v1.92.0-rc3")
 
-target_include_directories(
-  ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-...
+add_libray(${PROJECT_NAME} my_sources.cpp)
+# ...
 
 target_link_libraries(lib_using_filesystem PUBLIC Boost::filesystem)
 target_link_libraries(lib_using_header_only PUBLIC Boost::headers)
@@ -41,8 +40,8 @@ Boost will automatically be downloaded from https://github.com/boostorg/boost/re
 If that is not acceptable to you, you can use an alternate Boost version, apply
 custom patches or just mirror the current archive in your internal network like so:
 ```
-set(BOOST_URL http://internal.mirror/boost-1.91.0-1-cmake.7z)
-set(BOOST_URL_SHA256 29c7d4f4ac36ad853b6765d03571ea60d90286775df026b4efd9f3281131972b)
+set(BOOST_URL http://internal.mirror/boost-1.92.0-cmake.7z)
+set(BOOST_URL_SHA256 158852d45a7ce23de167a3dc2e57b04490829b233f06e835d5c81a65547ef68b)
 ```
 
 If you have boost-cmake and Boost cmake sources files already available and want to point to them, you can use the following:
@@ -70,7 +69,7 @@ packageProject(
   INCLUDE_HEADER_PATTERN "*.h"
   DISABLE_VERSION_SUFFIX YES
   COMPATIBILITY SameMajorVersion
-  DEPENDENCIES "Boost 1.91"
+  DEPENDENCIES "Boost 1.92"
 )
 
 include(CPack)

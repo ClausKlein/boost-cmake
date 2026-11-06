@@ -1,0 +1,18 @@
+--- libs/pfr/include/boost/pfr/detail/io.hpp.old	2026-08-19 13:14:43.547240000 +0200
++++ libs/pfr/include/boost/pfr/detail/io.hpp	2026-08-19 13:16:03.424081168 +0200
+@@ -51,6 +51,7 @@
+ struct print_impl {
+     template <class Stream, class T>
+     static void print (Stream& out, const T& value) {
++        using std::operator<<;
+         if (!!I) out << ", ";
+         out << detail::quoted_helper(boost::pfr::detail::sequence_tuple::get<I>(value));
+         print_impl<I + 1, N>::print(out, value);
+@@ -67,6 +68,7 @@
+ struct read_impl {
+     template <class Stream, class T>
+     static void read (Stream& in, const T& value) {
++        using std::operator>>;
+         char ignore = {};
+         if (!!I) {
+             in >> ignore;
