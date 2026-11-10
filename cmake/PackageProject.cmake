@@ -45,16 +45,13 @@ function(packageProject)
     endif()
 
     if(DEFINED PROJECT_VERSION_HEADER OR DEFINED PROJECT_EXPORT_HEADER)
-        set(PROJECT_VERSION_INCLUDE_DIR
-            ${PROJECT_BINARY_DIR}/PackageProjectInclude
-        )
+        set(PROJECT_VERSION_INCLUDE_DIR ${PROJECT_BINARY_DIR}/PackageProjectInclude)
 
         if(DEFINED PROJECT_EXPORT_HEADER)
             include(GenerateExportHeader)
             generate_export_header(
                 ${PROJECT_NAME}
-                EXPORT_FILE_NAME
-                    ${PROJECT_VERSION_INCLUDE_DIR}/${PROJECT_EXPORT_HEADER}
+                EXPORT_FILE_NAME ${PROJECT_VERSION_INCLUDE_DIR}/${PROJECT_EXPORT_HEADER}
             )
         endif()
 
@@ -66,8 +63,7 @@ function(packageProject)
             unset(CMAKE_MATCH_7)
 
             string(
-                REGEX MATCH
-                    "^([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?(\\.([0-9]+))?$"
+                REGEX MATCH "^([0-9]+)(\\.([0-9]+))?(\\.([0-9]+))?(\\.([0-9]+))?$"
                 _
                 "${PROJECT_VERSION}"
             )
@@ -92,12 +88,7 @@ function(packageProject)
 
             string(TOUPPER ${PROJECT_NAME} UPPERCASE_PROJECT_NAME)
             # ensure that the generated macro does not include invalid characters
-            string(
-                REGEX REPLACE [^a-zA-Z0-9]
-                _
-                UPPERCASE_PROJECT_NAME
-                ${UPPERCASE_PROJECT_NAME}
-            )
+            string(REGEX REPLACE [^a-zA-Z0-9] _ UPPERCASE_PROJECT_NAME ${UPPERCASE_PROJECT_NAME})
             configure_file(
                 ${PACKAGE_PROJECT_ROOT_PATH}/version.h.in
                 ${PROJECT_VERSION_INCLUDE_DIR}/${PROJECT_VERSION_HEADER}
@@ -149,9 +140,7 @@ function(packageProject)
 
     # set default runtime install subdirectory (RUNTIME_DESTINATION)
     if(NOT DEFINED PROJECT_RUNTIME_DESTINATION)
-        set(PROJECT_RUNTIME_DESTINATION
-            ${PROJECT_NAME}${PROJECT_VERSION_SUFFIX}
-        )
+        set(PROJECT_RUNTIME_DESTINATION ${PROJECT_NAME}${PROJECT_VERSION_SUFFIX})
     endif()
 
     if(PROJECT_HEADER_SETS)
@@ -246,9 +235,7 @@ function(packageProject)
         set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-            set(CPACK_RESOURCE_FILE_README
-                "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
-            )
+            set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
         endif()
 
         set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
