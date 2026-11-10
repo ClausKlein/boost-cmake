@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30...4.5)
+cmake_minimum_required(VERSION 3.31...4.5)
 
 include(cmake/prelude.cmake)
 
@@ -7,7 +7,7 @@ include(cmake/prelude.cmake)
 # allow standard decay and restore the requested strict setting afterward.
 set(beman_bounds_test_restore_required OFF)
 if(
-    CMAKE_VERSION VERSION_LESS 4.5
+    CMAKE_VERSION VERSION_LESS "4.5.0"
     AND CMAKE_CXX_STANDARD EQUAL 26
     AND (NOT DEFINED CMAKE_CXX_STANDARD_REQUIRED OR CMAKE_CXX_STANDARD_REQUIRED)
 )
@@ -46,8 +46,13 @@ if(PROJECT_IS_TOP_LEVEL)
     option(BOOST_USE_MODULES "Do build with CXX_MODULES if possible" OFF)
     if(BOOST_USE_MODULES)
         set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-        if(NOT CMAKE_CXX_STANDARD GREATER_EQUAL 23)
-            set(CMAKE_CXX_MODULE_STD OFF)
+        if(CMAKE_CXX_STDLIB_MODULES_JSON AND CMAKE_VERSION VERSION_GREATER_EQUAL "4.5.0")
+            set(CMAKE_CXX_MODULE_STD ON)
+            list(APPEND CMAKE_CXX_COMPILER_IMPORT_STD ${CMAKE_CXX_STANDARD})
+        else()
+            if(NOT CMAKE_CXX_STANDARD GREATER_EQUAL 23)
+                set(CMAKE_CXX_MODULE_STD OFF)
+            endif()
         endif()
     else()
         set(CMAKE_CXX_SCAN_FOR_MODULES OFF)

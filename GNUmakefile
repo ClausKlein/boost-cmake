@@ -90,7 +90,7 @@ build/Release/compile_commands.json: GNUmakefile CMakeLists.txt
 	cmake --preset Release --log-level=VERBOSE --fresh \
 	    -D BOOST_USE_MODULES=ON \
 	    -D CMAKE_CXX_MODULE_STD=ON \
-	    -D CMAKE_CXX_STANDARD=23 \
+	    -D CMAKE_CXX_STANDARD=26 \
 	    $${modules_json_option}
 
 build: compile_commands.json ## Run build preset
